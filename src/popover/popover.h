@@ -12,6 +12,7 @@
 #pragma once
 
 #include <glib-object.h>
+#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
@@ -27,7 +28,7 @@ typedef struct _BudgiePopoverClass BudgiePopoverClass;
 #define BUDGIE_POPOVER_GET_CLASS(o)                                                                \
         (G_TYPE_INSTANCE_GET_CLASS((o), BUDGIE_TYPE_POPOVER, BudgiePopoverClass))
 
-BudgiePopover *budgie_popover_new(void);
+GtkWidget *budgie_popover_new(void);
 
 GType budgie_popover_get_type(void);
 

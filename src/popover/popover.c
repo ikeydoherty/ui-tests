@@ -33,7 +33,7 @@ G_DEFINE_TYPE(BudgiePopover, budgie_popover, GTK_TYPE_POPOVER)
  *
  * Construct a new BudgiePopover object
  */
-BudgiePopover *budgie_popover_new()
+GtkWidget *budgie_popover_new()
 {
         return g_object_new(BUDGIE_TYPE_POPOVER, NULL);
 }
