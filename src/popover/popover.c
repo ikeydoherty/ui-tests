@@ -47,7 +47,7 @@ typedef struct BudgieTail {
  * We'll likely take this from a style property in future, but for now it
  * is both the width and height of a tail
  */
-#define TAIL_DIMENSION 10
+#define TAIL_DIMENSION 20
 #define SHADOW_DIMENSION 4
 
 /**
