@@ -32,6 +32,18 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr);
 static void budgie_popover_load_css(void);
 
 /**
+ * Used for storing BudgieTail calculations
+ */
+typedef struct BudgieTail {
+        double start_x;
+        double start_y;
+        double end_x;
+        double end_y;
+        double x;
+        double y;
+} BudgieTail;
+
+/**
  * We'll likely take this from a style property in future, but for now it
  * is both the width and height of a tail
  */
@@ -111,30 +123,39 @@ static void budgie_popover_init(BudgiePopover *self)
         gtk_container_set_border_width(GTK_CONTAINER(self), 40);
 }
 
+static void budgie_popover_compute_tail(GtkWidget *widget, BudgieTail *tail)
+{
+        GtkAllocation alloc = { 0 };
+        BudgieTail t = { 0 };
+
+        if (!tail) {
+                return;
+        }
+
+        gtk_widget_get_allocation(widget, &alloc);
+
+        /* Right now just assume we're centered and at the bottom. */
+        t.x = (alloc.x + alloc.width / 2);
+        t.y = (alloc.y + alloc.height);
+
+        t.start_x = t.x - (TAIL_DIMENSION / 2);
+        t.end_x = t.start_x + TAIL_DIMENSION;
+
+        t.start_y = t.y - (TAIL_DIMENSION / 2);
+        t.end_y = t.start_y;
+        *tail = t;
+}
+
 /**
  * Draw the actual tail itself.
  */
-static void budgie_popover_draw_tail(GtkWidget *widget, cairo_t *cr)
+static void budgie_popover_draw_tail(BudgieTail *tail, cairo_t *cr)
 {
-        GtkAllocation alloc = { 0 };
-        double x, y, start_x, start_y, end_x, end_y = 0;
-
-        gtk_widget_get_allocation(widget, &alloc);
         cairo_save(cr);
 
-        /* Right now just assume we're centered and at the bottom. */
-        x = (alloc.x + alloc.width / 2);
-        y = (alloc.y + alloc.height);
-
-        start_x = x - (TAIL_DIMENSION / 2);
-        end_x = start_x + TAIL_DIMENSION;
-
-        start_y = y - (TAIL_DIMENSION / 2);
-        end_y = start_y;
-
-        cairo_move_to(cr, start_x, start_y);
-        cairo_line_to(cr, x, y);
-        cairo_line_to(cr, end_x, end_y);
+        cairo_move_to(cr, tail->start_x, tail->start_y);
+        cairo_line_to(cr, tail->x, tail->y);
+        cairo_line_to(cr, tail->end_x, tail->end_y);
         cairo_set_line_width(cr, 0.5);
         cairo_stroke(cr);
 
@@ -149,6 +170,9 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
         GtkStyleContext *style = NULL;
         GtkAllocation alloc = { 0 };
         GtkWidget *child = NULL;
+        BudgieTail tail = { 0 };
+
+        budgie_popover_compute_tail(widget, &tail);
 
         style = gtk_widget_get_style_context(widget);
         gtk_widget_get_allocation(widget, &alloc);
@@ -161,7 +185,7 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
                 gtk_container_propagate_draw(GTK_CONTAINER(widget), child, cr);
         }
 
-        budgie_popover_draw_tail(widget, cr);
+        budgie_popover_draw_tail(&tail, cr);
 
         return GDK_EVENT_STOP;
 }
