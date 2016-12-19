@@ -26,7 +26,7 @@ struct _BudgiePopover {
         GtkWindow parent;
 };
 
-G_DEFINE_TYPE(BudgiePopover, budgie_popover, GTK_TYPE_POPOVER)
+G_DEFINE_TYPE(BudgiePopover, budgie_popover, GTK_TYPE_WINDOW)
 
 /**
  * budgie_popover_new:
