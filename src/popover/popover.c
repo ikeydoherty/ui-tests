@@ -48,6 +48,7 @@ typedef struct BudgieTail {
  * is both the width and height of a tail
  */
 #define TAIL_DIMENSION 10
+#define SHADOW_DIMENSION 4
 
 /**
  * budgie_popover_new:
@@ -135,8 +136,8 @@ static void budgie_popover_compute_tail(GtkWidget *widget, BudgieTail *tail)
         gtk_widget_get_allocation(widget, &alloc);
 
         /* Right now just assume we're centered and at the bottom. */
-        t.x = (alloc.x + alloc.width / 2);
-        t.y = (alloc.y + alloc.height);
+        t.x = (alloc.x + alloc.width / 2) - SHADOW_DIMENSION;
+        t.y = (alloc.y + alloc.height) - SHADOW_DIMENSION;
 
         t.start_x = t.x - (TAIL_DIMENSION / 2);
         t.end_x = t.start_x + TAIL_DIMENSION;
@@ -174,7 +175,7 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
         GtkStateFlags fl;
 
         budgie_popover_compute_tail(widget, &tail);
-        fl = gtk_widget_get_state_flags(widget);
+        fl = GTK_STATE_FLAG_VISITED;
 
         style = gtk_widget_get_style_context(widget);
         gtk_widget_get_allocation(widget, &alloc);
@@ -185,20 +186,25 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
 
         /* Set up the offset */
         original_height = alloc.height;
-        alloc.height -= (alloc.height - (int)tail.start_y);
+        alloc.height -= (alloc.height - (int)tail.start_y) - SHADOW_DIMENSION;
 
         /* Fix overhang */
-        alloc.height += 1;
-        gtk_render_background(style, cr, alloc.x, alloc.y, alloc.width, alloc.height);
+        // alloc.height += 1;
+        gtk_render_background(style,
+                              cr,
+                              alloc.x + SHADOW_DIMENSION,
+                              alloc.y + SHADOW_DIMENSION,
+                              alloc.width - SHADOW_DIMENSION * 2,
+                              alloc.height - SHADOW_DIMENSION * 2);
         gtk_render_frame_gap(style,
                              cr,
-                             alloc.x,
-                             alloc.y,
-                             alloc.width,
-                             alloc.height,
+                             alloc.x + SHADOW_DIMENSION,
+                             alloc.y + SHADOW_DIMENSION,
+                             alloc.width - SHADOW_DIMENSION * 2,
+                             alloc.height - SHADOW_DIMENSION * 2,
                              GTK_POS_BOTTOM,
-                             tail.start_x,
-                             tail.end_x);
+                             tail.start_x - SHADOW_DIMENSION,
+                             tail.end_x - SHADOW_DIMENSION);
 
         child = gtk_bin_get_child(GTK_BIN(widget));
         if (child) {
