@@ -74,6 +74,7 @@ static void budgie_popover_init(BudgiePopover *self)
         gtk_window_set_type_hint(win, GDK_WINDOW_TYPE_HINT_POPUP_MENU);
         gtk_window_set_skip_pager_hint(win, TRUE);
         gtk_window_set_skip_taskbar_hint(win, TRUE);
+        gtk_window_set_position(win, GTK_WIN_POS_CENTER);
 }
 
 /*
