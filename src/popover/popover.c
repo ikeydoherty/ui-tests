@@ -152,6 +152,8 @@ static void budgie_popover_compute_tail(GtkWidget *widget, BudgieTail *tail)
  */
 static void budgie_popover_draw_tail(BudgieTail *tail, cairo_t *cr)
 {
+        /* Draw "through" the previous box-shadow */
+        cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
         cairo_set_line_cap(cr, CAIRO_LINE_CAP_BUTT);
         cairo_set_line_join(cr, CAIRO_LINE_JOIN_MITER);
         cairo_move_to(cr, tail->start_x, tail->start_y);
