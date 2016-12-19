@@ -28,6 +28,8 @@ struct _BudgiePopover {
 
 G_DEFINE_TYPE(BudgiePopover, budgie_popover, GTK_TYPE_WINDOW)
 
+static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr);
+
 /**
  * budgie_popover_new:
  *
@@ -56,9 +58,13 @@ static void budgie_popover_dispose(GObject *obj)
 static void budgie_popover_class_init(BudgiePopoverClass *klazz)
 {
         GObjectClass *obj_class = G_OBJECT_CLASS(klazz);
+        GtkWidgetClass *wid_class = GTK_WIDGET_CLASS(klazz);
 
         /* gobject vtable hookup */
         obj_class->dispose = budgie_popover_dispose;
+
+        /* widget vtable hookup */
+        wid_class->draw = budgie_popover_draw;
 }
 
 /**
@@ -84,6 +90,31 @@ static void budgie_popover_init(BudgiePopover *self)
         if (visual) {
                 gtk_widget_set_visual(GTK_WIDGET(self), visual);
         }
+        /* We do all rendering */
+        gtk_widget_set_app_paintable(GTK_WIDGET(self), TRUE);
+}
+
+/**
+ * Override the drawing to provide a tail region
+ */
+static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
+{
+        GtkStyleContext *style = NULL;
+        GtkAllocation alloc = { 0 };
+        GtkWidget *child = NULL;
+
+        style = gtk_widget_get_style_context(widget);
+        gtk_widget_get_allocation(widget, &alloc);
+
+        gtk_render_background(style, cr, alloc.x, alloc.y, alloc.width, alloc.height);
+        gtk_render_frame(style, cr, alloc.x, alloc.y, alloc.width, alloc.height);
+
+        child = gtk_bin_get_child(GTK_BIN(widget));
+        if (child) {
+                gtk_container_propagate_draw(GTK_CONTAINER(widget), child, cr);
+        }
+
+        return GDK_EVENT_STOP;
 }
 
 /*
