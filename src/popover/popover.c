@@ -151,15 +151,13 @@ static void budgie_popover_compute_tail(GtkWidget *widget, BudgieTail *tail)
  */
 static void budgie_popover_draw_tail(BudgieTail *tail, cairo_t *cr)
 {
-        cairo_save(cr);
-
+        cairo_set_line_cap(cr, CAIRO_LINE_CAP_BUTT);
+        cairo_set_line_join(cr, CAIRO_LINE_JOIN_MITER);
         cairo_move_to(cr, tail->start_x, tail->start_y);
         cairo_line_to(cr, tail->x, tail->y);
         cairo_line_to(cr, tail->end_x, tail->end_y);
-        cairo_set_line_width(cr, 1.0);
-        cairo_stroke(cr);
-
-        cairo_restore(cr);
+        cairo_set_line_width(cr, 0.0);
+        cairo_stroke_preserve(cr);
 }
 
 /**
@@ -171,13 +169,17 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
         GtkAllocation alloc = { 0 };
         GtkWidget *child = NULL;
         BudgieTail tail = { 0 };
+        gint original_height;
 
         budgie_popover_compute_tail(widget, &tail);
 
         style = gtk_widget_get_style_context(widget);
         gtk_widget_get_allocation(widget, &alloc);
 
-        alloc.height -= (alloc.height - (int) tail.start_y);
+        original_height = alloc.height;
+        alloc.height -= (alloc.height - (int)tail.start_y);
+        /* Fix overhang */
+        alloc.height += 1;
         gtk_render_background(style, cr, alloc.x, alloc.y, alloc.width, alloc.height);
         gtk_render_frame_gap(style,
                              cr,
@@ -195,6 +197,9 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
         }
 
         budgie_popover_draw_tail(&tail, cr);
+        cairo_clip(cr);
+        cairo_move_to(cr, 0, 0);
+        gtk_render_background(style, cr, alloc.x, alloc.y, alloc.width, original_height);
 
         return GDK_EVENT_STOP;
 }
