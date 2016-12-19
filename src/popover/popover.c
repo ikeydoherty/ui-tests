@@ -92,6 +92,9 @@ static void budgie_popover_init(BudgiePopover *self)
         }
         /* We do all rendering */
         gtk_widget_set_app_paintable(GTK_WIDGET(self), TRUE);
+
+        /* TESTING: To let us develop the tail render code */
+        gtk_container_set_border_width(GTK_CONTAINER(self), 40);
 }
 
 /**
