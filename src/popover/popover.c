@@ -156,7 +156,7 @@ static void budgie_popover_draw_tail(BudgieTail *tail, cairo_t *cr)
         cairo_move_to(cr, tail->start_x, tail->start_y);
         cairo_line_to(cr, tail->x, tail->y);
         cairo_line_to(cr, tail->end_x, tail->end_y);
-        cairo_set_line_width(cr, 0.5);
+        cairo_set_line_width(cr, 1.0);
         cairo_stroke(cr);
 
         cairo_restore(cr);
@@ -178,7 +178,7 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
         gtk_widget_get_allocation(widget, &alloc);
 
         gtk_render_background(style, cr, alloc.x, alloc.y, alloc.width, alloc.height);
-        gtk_render_frame(style, cr, alloc.x, alloc.y, alloc.width, alloc.height);
+        gtk_render_frame_gap(style, cr, alloc.x, alloc.y, alloc.width, alloc.height, GTK_POS_BOTTOM, tail.start_x, tail.end_x);
 
         child = gtk_bin_get_child(GTK_BIN(widget));
         if (child) {
