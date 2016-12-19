@@ -178,7 +178,15 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
         gtk_widget_get_allocation(widget, &alloc);
 
         gtk_render_background(style, cr, alloc.x, alloc.y, alloc.width, alloc.height);
-        gtk_render_frame_gap(style, cr, alloc.x, alloc.y, alloc.width, alloc.height, GTK_POS_BOTTOM, tail.start_x, tail.end_x);
+        gtk_render_frame_gap(style,
+                             cr,
+                             alloc.x,
+                             alloc.y,
+                             alloc.width,
+                             alloc.height,
+                             GTK_POS_BOTTOM,
+                             tail.start_x,
+                             tail.end_x);
 
         child = gtk_bin_get_child(GTK_BIN(widget));
         if (child) {
