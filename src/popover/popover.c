@@ -29,6 +29,7 @@ struct _BudgiePopover {
 G_DEFINE_TYPE(BudgiePopover, budgie_popover, GTK_TYPE_WINDOW)
 
 static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr);
+static void budgie_popover_load_css(void);
 
 /**
  * We'll likely take this from a style property in future, but for now it
@@ -83,6 +84,13 @@ static void budgie_popover_init(BudgiePopover *self)
         GtkWindow *win = GTK_WINDOW(self);
         GdkScreen *screen = NULL;
         GdkVisual *visual = NULL;
+        GtkStyleContext *style = NULL;
+
+        style = gtk_widget_get_style_context(GTK_WIDGET(self));
+        gtk_style_context_add_class(style, "budgie-popover");
+
+        /* Hacky demo */
+        budgie_popover_load_css();
 
         /* Setup window specific bits */
         gtk_window_set_type_hint(win, GDK_WINDOW_TYPE_HINT_POPUP_MENU);
@@ -156,6 +164,19 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
         budgie_popover_draw_tail(widget, cr);
 
         return GDK_EVENT_STOP;
+}
+
+static void budgie_popover_load_css()
+{
+        GdkScreen *screen = NULL;
+        GtkCssProvider *css = NULL;
+
+        screen = gdk_screen_get_default();
+        css = gtk_css_provider_new();
+        gtk_css_provider_load_from_path(css, "src/popover/styling.css", NULL);
+        gtk_style_context_add_provider_for_screen(screen,
+                                                  GTK_STYLE_PROVIDER(css),
+                                                  GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 }
 
 /*
