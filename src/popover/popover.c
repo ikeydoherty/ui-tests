@@ -31,6 +31,12 @@ G_DEFINE_TYPE(BudgiePopover, budgie_popover, GTK_TYPE_WINDOW)
 static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr);
 
 /**
+ * We'll likely take this from a style property in future, but for now it
+ * is both the width and height of a tail
+ */
+#define TAIL_DIMENSION 10
+
+/**
  * budgie_popover_new:
  *
  * Construct a new BudgiePopover object
@@ -98,6 +104,36 @@ static void budgie_popover_init(BudgiePopover *self)
 }
 
 /**
+ * Draw the actual tail itself.
+ */
+static void budgie_popover_draw_tail(GtkWidget *widget, cairo_t *cr)
+{
+        GtkAllocation alloc = { 0 };
+        double x, y, start_x, start_y, end_x, end_y = 0;
+
+        gtk_widget_get_allocation(widget, &alloc);
+        cairo_save(cr);
+
+        /* Right now just assume we're centered and at the bottom. */
+        x = (alloc.x + alloc.width / 2);
+        y = (alloc.y + alloc.height);
+
+        start_x = x - (TAIL_DIMENSION / 2);
+        end_x = start_x + TAIL_DIMENSION;
+
+        start_y = y - (TAIL_DIMENSION / 2);
+        end_y = start_y;
+
+        cairo_move_to(cr, start_x, start_y);
+        cairo_line_to(cr, x, y);
+        cairo_line_to(cr, end_x, end_y);
+        cairo_set_line_width(cr, 0.5);
+        cairo_stroke(cr);
+
+        cairo_restore(cr);
+}
+
+/**
  * Override the drawing to provide a tail region
  */
 static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
@@ -116,6 +152,8 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
         if (child) {
                 gtk_container_propagate_draw(GTK_CONTAINER(widget), child, cr);
         }
+
+        budgie_popover_draw_tail(widget, cr);
 
         return GDK_EVENT_STOP;
 }
