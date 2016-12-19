@@ -19,8 +19,15 @@ BUDGIE_END_PEDANTIC
 int main(int argc, char **argv)
 {
         gtk_init(&argc, &argv);
+        GtkWidget *window = NULL;
 
-        return EXIT_FAILURE;
+        window = budgie_popover_new();
+        g_signal_connect(window, "destroy", gtk_main_quit, NULL);
+        gtk_widget_show_all(window);
+
+        gtk_main();
+
+        return EXIT_SUCCESS;
 }
 
 /*
