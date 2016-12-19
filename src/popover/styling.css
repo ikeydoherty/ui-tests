@@ -1,5 +1,6 @@
 .budgie-popover {
     border-radius: 2px;
     border: 1px solid alpha(black, 0.8);
-    background-color: #FAFAFA;
+    background-color: alpha(#FAFAFA, 0.91);
+    background-image: none;
 }

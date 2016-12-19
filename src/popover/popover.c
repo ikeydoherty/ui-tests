@@ -156,7 +156,6 @@ static void budgie_popover_draw_tail(BudgieTail *tail, cairo_t *cr)
         cairo_move_to(cr, tail->start_x, tail->start_y);
         cairo_line_to(cr, tail->x, tail->y);
         cairo_line_to(cr, tail->end_x, tail->end_y);
-        cairo_set_line_width(cr, 0.0);
         cairo_stroke_preserve(cr);
 }
 
@@ -170,14 +169,24 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
         GtkWidget *child = NULL;
         BudgieTail tail = { 0 };
         gint original_height;
+        GdkRGBA border_color = { 0 };
+        GtkBorder border = { 0 };
+        GtkStateFlags fl;
 
         budgie_popover_compute_tail(widget, &tail);
+        fl = gtk_widget_get_state_flags(widget);
 
         style = gtk_widget_get_style_context(widget);
         gtk_widget_get_allocation(widget, &alloc);
 
+        /* Warning: Using deprecated API */
+        gtk_style_context_get_border_color(style, fl, &border_color);
+        gtk_style_context_get_border(style, fl, &border);
+
+        /* Set up the offset */
         original_height = alloc.height;
         alloc.height -= (alloc.height - (int)tail.start_y);
+
         /* Fix overhang */
         alloc.height += 1;
         gtk_render_background(style, cr, alloc.x, alloc.y, alloc.width, alloc.height);
@@ -196,6 +205,12 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
                 gtk_container_propagate_draw(GTK_CONTAINER(widget), child, cr);
         }
 
+        cairo_set_line_width(cr, border.bottom);
+        cairo_set_source_rgba(cr,
+                              border_color.red,
+                              border_color.green,
+                              border_color.blue,
+                              border_color.alpha);
         budgie_popover_draw_tail(&tail, cr);
         cairo_clip(cr);
         cairo_move_to(cr, 0, 0);
