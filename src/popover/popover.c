@@ -28,7 +28,6 @@ struct _BudgiePopover {
 
 G_DEFINE_TYPE(BudgiePopover, budgie_popover, GTK_TYPE_POPOVER)
 
-
 /**
  * budgie_popover_new:
  *

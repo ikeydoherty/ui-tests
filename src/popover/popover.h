@@ -19,13 +19,12 @@ typedef struct _BudgiePopover BudgiePopover;
 typedef struct _BudgiePopoverClass BudgiePopoverClass;
 
 #define BUDGIE_TYPE_POPOVER budgie_popover_get_type()
-#define BUDGIE_POPOVER(o)                                                                    \
-        (G_TYPE_CHECK_INSTANCE_CAST((o), BUDGIE_TYPE_POPOVER, BudgiePopover))
+#define BUDGIE_POPOVER(o) (G_TYPE_CHECK_INSTANCE_CAST((o), BUDGIE_TYPE_POPOVER, BudgiePopover))
 #define BUDGIE_IS_POPOVER(o) (G_TYPE_CHECK_INSTANCE_TYPE((o), BUDGIE_TYPE_POPOVER))
-#define BUDGIE_POPOVER_CLASS(o)                                                              \
+#define BUDGIE_POPOVER_CLASS(o)                                                                    \
         (G_TYPE_CHECK_CLASS_CAST((o), BUDGIE_TYPE_POPOVER, BudgiePopoverClass))
 #define BUDGIE_IS_POPOVER_CLASS(o) (G_TYPE_CHECK_CLASS_TYPE((o), BUDGIE_TYPE_POPOVER))
-#define BUDGIE_POPOVER_GET_CLASS(o)                                                          \
+#define BUDGIE_POPOVER_GET_CLASS(o)                                                                \
         (G_TYPE_INSTANCE_GET_CLASS((o), BUDGIE_TYPE_POPOVER, BudgiePopoverClass))
 
 BudgiePopover *budgie_popover_new(void);
