@@ -6,6 +6,9 @@ AM_CFLAGS = \
 	-Wconversion -Wunused-variable -Wunreachable-code 	\
 	-Wall -W -D_FORTIFY_SOURCE=2 -std=c11
 
+AM_CPPFLAGS = \
+	-I$(top_srcdir)/src/include
+
 noinst_PROGRAMS = \
 	popover-test
 
