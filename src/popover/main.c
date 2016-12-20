@@ -20,14 +20,15 @@ int main(int argc, char **argv)
 {
         gtk_init(&argc, &argv);
         GtkWidget *window = NULL;
-        GtkWidget *label = NULL;
+        GtkWidget *entry = NULL;
 
         /* Create popover */
         window = budgie_popover_new();
 
         /* Add content */
-        label = gtk_label_new("I am (eventually going to be) a popover");
-        gtk_container_add(GTK_CONTAINER(window), label);
+        entry = gtk_entry_new();
+        gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Type here!");
+        gtk_container_add(GTK_CONTAINER(window), entry);
 
         /* Render popover */
         g_signal_connect(window, "destroy", gtk_main_quit, NULL);
