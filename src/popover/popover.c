@@ -29,6 +29,7 @@ struct _BudgiePopover {
 G_DEFINE_TYPE(BudgiePopover, budgie_popover, GTK_TYPE_WINDOW)
 
 static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr);
+static gboolean budgie_popover_map(GtkWidget *widget, gpointer udata);
 static void budgie_popover_load_css(void);
 
 /**
@@ -110,6 +111,7 @@ static void budgie_popover_init(BudgiePopover *self)
         gtk_window_set_skip_pager_hint(win, TRUE);
         gtk_window_set_skip_taskbar_hint(win, TRUE);
         gtk_window_set_position(win, GTK_WIN_POS_CENTER);
+        g_signal_connect(win, "map-event", G_CALLBACK(budgie_popover_map), NULL);
 
         /* Set up RGBA ability */
         screen = gtk_widget_get_screen(GTK_WIDGET(self));
@@ -241,6 +243,18 @@ static void budgie_popover_load_css()
         gtk_style_context_add_provider_for_screen(screen,
                                                   GTK_STYLE_PROVIDER(css),
                                                   GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+}
+
+static gboolean budgie_popover_map(GtkWidget *widget, gpointer udata)
+{
+        GdkWindow *window = NULL;
+
+        /* Forcibly request focus */
+        window = gtk_widget_get_window(widget);
+        gdk_window_focus(window, GDK_CURRENT_TIME);
+        gtk_window_present(GTK_WINDOW(widget));
+
+        return GDK_EVENT_STOP;
 }
 
 /*
