@@ -16,19 +16,32 @@ BUDGIE_BEGIN_PEDANTIC
 #include "popover.h"
 BUDGIE_END_PEDANTIC
 
+static void button_click_cb(GtkWidget *pop, gpointer udata)
+{
+        gtk_widget_hide(pop);
+        gtk_widget_destroy(pop);
+}
+
 int main(int argc, char **argv)
 {
         gtk_init(&argc, &argv);
         GtkWidget *window = NULL;
-        GtkWidget *entry = NULL;
+        GtkWidget *entry, *button, *layout = NULL;
 
         /* Create popover */
         window = budgie_popover_new();
 
+        layout = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+        gtk_container_add(GTK_CONTAINER(window), layout);
+
         /* Add content */
         entry = gtk_entry_new();
         gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Type here!");
-        gtk_container_add(GTK_CONTAINER(window), entry);
+        gtk_box_pack_start(GTK_BOX(layout), entry, TRUE, TRUE, 2);
+
+        button = gtk_button_new_with_label("Click me!");
+        g_signal_connect_swapped(button, "clicked", G_CALLBACK(button_click_cb), window);
+        gtk_box_pack_end(GTK_BOX(layout), button, FALSE, FALSE, 2);
 
         /* Render popover */
         g_signal_connect(window, "destroy", gtk_main_quit, NULL);
