@@ -193,6 +193,7 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
 
         /* Fix overhang */
         // alloc.height += 1;
+        gtk_style_context_set_state(style, GTK_STATE_FLAG_BACKDROP);
         gtk_render_background(style,
                               cr,
                               alloc.x + SHADOW_DIMENSION,
@@ -208,6 +209,7 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
                              GTK_POS_BOTTOM,
                              tail.start_x - SHADOW_DIMENSION,
                              tail.end_x - SHADOW_DIMENSION);
+        gtk_style_context_set_state(style, fl);
 
         child = gtk_bin_get_child(GTK_BIN(widget));
         if (child) {

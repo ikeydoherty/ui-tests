@@ -9,9 +9,13 @@
     border-radius: 2px;
     background-color: alpha(#FAFAFA, 0.91);
     background-image: none;
-    box-shadow: 0 2px 4px 0 @panel_shadow, 0 0 0 1px @panel_border;
 }
 
 .budgie-popover:visited {
     border: 1px solid alpha(black, 0.8);
+}
+
+.budgie-popover:backdrop {
+    box-shadow: 0 2px 4px 0 @panel_shadow, 0 0 0 1px @panel_border;
+    border-radius: 2px;
 }
