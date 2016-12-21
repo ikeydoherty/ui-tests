@@ -24,12 +24,17 @@ struct _BudgiePopoverClass {
 
 struct _BudgiePopover {
         GtkWindow parent;
+
+        gboolean grabbed;
 };
 
 G_DEFINE_TYPE(BudgiePopover, budgie_popover, GTK_TYPE_WINDOW)
 
 static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr);
 static gboolean budgie_popover_map(GtkWidget *widget, gpointer udata);
+static gboolean budgie_popover_unmap(GtkWidget *widget, gpointer udata);
+static void budgie_popover_grab(BudgiePopover *self);
+static void budgie_popover_ungrab(BudgiePopover *self);
 static void budgie_popover_load_css(void);
 
 /**
@@ -100,6 +105,8 @@ static void budgie_popover_init(BudgiePopover *self)
         GdkVisual *visual = NULL;
         GtkStyleContext *style = NULL;
 
+        self->grabbed = FALSE;
+
         style = gtk_widget_get_style_context(GTK_WIDGET(self));
         gtk_style_context_add_class(style, "budgie-popover");
 
@@ -112,6 +119,7 @@ static void budgie_popover_init(BudgiePopover *self)
         gtk_window_set_skip_taskbar_hint(win, TRUE);
         gtk_window_set_position(win, GTK_WIN_POS_CENTER);
         g_signal_connect(win, "map-event", G_CALLBACK(budgie_popover_map), NULL);
+        g_signal_connect(win, "unmap-event", G_CALLBACK(budgie_popover_unmap), NULL);
 
         /* Set up RGBA ability */
         screen = gtk_widget_get_screen(GTK_WIDGET(self));
@@ -254,7 +262,71 @@ static gboolean budgie_popover_map(GtkWidget *widget, gpointer udata)
         gdk_window_focus(window, GDK_CURRENT_TIME);
         gtk_window_present(GTK_WINDOW(widget));
 
+        budgie_popover_grab(BUDGIE_POPOVER(widget));
+
         return GDK_EVENT_STOP;
+}
+
+static gboolean budgie_popover_unmap(GtkWidget *widget, gpointer udata)
+{
+        budgie_popover_ungrab(BUDGIE_POPOVER(widget));
+        return GDK_EVENT_STOP;
+}
+
+/**
+ * Grab the input events using the GdkSeat
+ */
+static void budgie_popover_grab(BudgiePopover *self)
+{
+        GdkDisplay *display = NULL;
+        GdkSeat *seat = NULL;
+        GdkWindow *window = NULL;
+        GdkSeatCapabilities caps = 0;
+        GdkGrabStatus st;
+
+        if (self->grabbed) {
+                return;
+        }
+
+        window = gtk_widget_get_window(GTK_WIDGET(self));
+        if (!window) {
+                g_warning("Attempting to grab BudgiePopover when not realized");
+                return;
+        }
+
+        display = gtk_widget_get_display(GTK_WIDGET(self));
+        seat = gdk_display_get_default_seat(display);
+
+        if (gdk_seat_get_pointer(seat) != NULL) {
+                caps |= GDK_SEAT_CAPABILITY_ALL_POINTING;
+        }
+        if (gdk_seat_get_keyboard(seat) != NULL) {
+                caps |= GDK_SEAT_CAPABILITY_KEYBOARD;
+        }
+
+        st = gdk_seat_grab(seat, window, caps, TRUE, NULL, NULL, NULL, NULL);
+        if (st == GDK_GRAB_SUCCESS) {
+                self->grabbed = TRUE;
+        }
+}
+
+/**
+ * Ungrab a previous grab by this widget
+ */
+static void budgie_popover_ungrab(BudgiePopover *self)
+{
+        GdkDisplay *display = NULL;
+        GdkSeat *seat = NULL;
+
+        if (!self->grabbed) {
+                return;
+        }
+
+        display = gtk_widget_get_display(GTK_WIDGET(self));
+        seat = gdk_display_get_default_seat(display);
+
+        gdk_seat_ungrab(seat);
+        self->grabbed = FALSE;
 }
 
 /*
