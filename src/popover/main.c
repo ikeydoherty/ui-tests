@@ -16,7 +16,7 @@ BUDGIE_BEGIN_PEDANTIC
 #include "popover.h"
 BUDGIE_END_PEDANTIC
 
-static void button_click_cb(GtkWidget *pop, gpointer udata)
+static void button_click_cb(GtkWidget *pop, __budgie_unused__ gpointer udata)
 {
         gtk_widget_hide(pop);
         gtk_widget_destroy(pop);
