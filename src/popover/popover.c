@@ -339,7 +339,8 @@ static void budgie_popover_ungrab(BudgiePopover *self)
 /**
  * Grab was broken, most likely due to a window within our application
  */
-static gboolean budgie_popover_grab_broken(GtkWidget *widget, __budgie_unused__ GdkEvent *event, __budgie_unused__ gpointer udata)
+static gboolean budgie_popover_grab_broken(GtkWidget *widget, __budgie_unused__ GdkEvent *event,
+                                           __budgie_unused__ gpointer udata)
 {
         BudgiePopover *self = NULL;
 
@@ -354,7 +355,8 @@ static gboolean budgie_popover_grab_broken(GtkWidget *widget, __budgie_unused__ 
  * If our grab was broken, i.e. due to some popup menu, and we're still visible,
  * we'll now try and grab focus once more.
  */
-static void budgie_popover_grab_notify(GtkWidget *widget, gboolean was_grabbed, __budgie_unused__ gpointer udata)
+static void budgie_popover_grab_notify(GtkWidget *widget, gboolean was_grabbed,
+                                       __budgie_unused__ gpointer udata)
 {
         BudgiePopover *self = NULL;
 
