@@ -33,6 +33,8 @@ G_DEFINE_TYPE(BudgiePopover, budgie_popover, GTK_TYPE_WINDOW)
 static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr);
 static gboolean budgie_popover_map(GtkWidget *widget, gpointer udata);
 static gboolean budgie_popover_unmap(GtkWidget *widget, gpointer udata);
+static void budgie_popover_grab_notify(GtkWidget *widget, gboolean was_grabbed, gpointer udata);
+static gboolean budgie_popover_grab_broken(GtkWidget *widget, GdkEvent *event, gpointer udata);
 static void budgie_popover_grab(BudgiePopover *self);
 static void budgie_popover_ungrab(BudgiePopover *self);
 static void budgie_popover_load_css(void);
@@ -120,6 +122,8 @@ static void budgie_popover_init(BudgiePopover *self)
         gtk_window_set_position(win, GTK_WIN_POS_CENTER);
         g_signal_connect(win, "map-event", G_CALLBACK(budgie_popover_map), NULL);
         g_signal_connect(win, "unmap-event", G_CALLBACK(budgie_popover_unmap), NULL);
+        g_signal_connect(win, "grab-notify", G_CALLBACK(budgie_popover_grab_notify), NULL);
+        g_signal_connect(win, "grab-broken-event", G_CALLBACK(budgie_popover_grab_broken), NULL);
 
         /* Set up RGBA ability */
         screen = gtk_widget_get_screen(GTK_WIDGET(self));
@@ -259,6 +263,7 @@ static gboolean budgie_popover_map(GtkWidget *widget, gpointer udata)
 
         /* Forcibly request focus */
         window = gtk_widget_get_window(widget);
+        gdk_window_set_accept_focus(window, TRUE);
         gdk_window_focus(window, GDK_CURRENT_TIME);
         gtk_window_present(GTK_WINDOW(widget));
 
@@ -307,6 +312,7 @@ static void budgie_popover_grab(BudgiePopover *self)
         st = gdk_seat_grab(seat, window, caps, TRUE, NULL, NULL, NULL, NULL);
         if (st == GDK_GRAB_SUCCESS) {
                 self->grabbed = TRUE;
+                gtk_grab_add(GTK_WIDGET(self));
         }
 }
 
@@ -325,8 +331,44 @@ static void budgie_popover_ungrab(BudgiePopover *self)
         display = gtk_widget_get_display(GTK_WIDGET(self));
         seat = gdk_display_get_default_seat(display);
 
+        gtk_grab_remove(GTK_WIDGET(self));
         gdk_seat_ungrab(seat);
         self->grabbed = FALSE;
+}
+
+/**
+ * Grab was broken, most likely due to a window within our application
+ */
+static gboolean budgie_popover_grab_broken(GtkWidget *widget, GdkEvent *event, gpointer udata)
+{
+        BudgiePopover *self = NULL;
+
+        self = BUDGIE_POPOVER(widget);
+        self->grabbed = FALSE;
+}
+
+/**
+ * Grab changed _within_ the application
+ *
+ * If our grab was broken, i.e. due to some popup menu, and we're still visible,
+ * we'll now try and grab focus once more.
+ */
+static void budgie_popover_grab_notify(GtkWidget *widget, gboolean was_grabbed, gpointer udata)
+{
+        BudgiePopover *self = NULL;
+
+        /* Only interested in unshadowed */
+        if (!was_grabbed) {
+                return;
+        }
+
+        /* And being visible. ofc. */
+        if (!gtk_widget_get_visible(widget)) {
+                return;
+        }
+
+        self = BUDGIE_POPOVER(widget);
+        budgie_popover_grab(self);
 }
 
 /*
