@@ -167,6 +167,12 @@ static void budgie_popover_manager_unlink_signals(BudgiePopoverManager *self,
         g_signal_handlers_disconnect_by_data(popover, self);
 }
 
+static gboolean show_one_popover(gpointer v)
+{
+        gtk_widget_show_all(GTK_WIDGET(v));
+        return FALSE;
+}
+
 /**
  * Handle an enter-notify for a widget to handle roll-over selection when grabbed
  */
@@ -213,7 +219,7 @@ static gboolean budgie_popover_manager_enter_notify(BudgiePopoverManager *self,
                 self->active_popover = NULL;
         }
 
-        gtk_widget_show_all(target_popover);
+        g_idle_add(show_one_popover, target_popover);
 
         return GDK_EVENT_STOP;
 }
