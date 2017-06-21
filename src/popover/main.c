@@ -24,12 +24,15 @@ static void button_click_cb(__budgie_unused__ GtkWidget *pop, gpointer udata)
         gtk_widget_hide(popover);
 }
 
-static void show_popover_cb(__budgie_unused__ GtkWidget *window, gpointer udata)
+static gboolean show_popover_cb(__budgie_unused__ GtkWidget *window, GdkEventButton *button,
+                                gpointer udata)
 {
         GtkWidget *popover = udata;
 
         g_message("GOT CLICKED YO");
         gtk_widget_show_all(popover);
+
+        return GDK_EVENT_STOP;
 }
 
 static GtkWidget *sudo_make_me_a_popover(const gchar *le_label)
@@ -80,18 +83,19 @@ int main(int argc, char **argv)
         gtk_container_add(GTK_CONTAINER(main_window), layout);
 
         /* Hook up the popover to the actionable button */
-        button = gtk_button_new_with_label("Click me #1");
+        button = gtk_toggle_button_new_with_label("Click me #1");
+        g_object_bind_property(popover, "visible", button, "active", G_BINDING_DEFAULT);
         budgie_popover_manager_register_popover(manager, button, BUDGIE_POPOVER(popover));
 
         gtk_box_pack_start(GTK_BOX(layout), button, FALSE, FALSE, 0);
-        g_signal_connect(button, "clicked", G_CALLBACK(show_popover_cb), popover);
-
-        button = gtk_button_new_with_label("Click me #2");
-        gtk_box_pack_start(GTK_BOX(layout), button, FALSE, FALSE, 0);
+        g_signal_connect(button, "button-press-event", G_CALLBACK(show_popover_cb), popover);
 
         popover = sudo_make_me_a_popover("Popover #2");
+        button = gtk_toggle_button_new_with_label("Click me #2");
+        g_object_bind_property(popover, "visible", button, "active", G_BINDING_DEFAULT);
+        gtk_box_pack_start(GTK_BOX(layout), button, FALSE, FALSE, 0);
 
-        g_signal_connect(button, "clicked", G_CALLBACK(show_popover_cb), popover);
+        g_signal_connect(button, "button-press-event", G_CALLBACK(show_popover_cb), popover);
         budgie_popover_manager_register_popover(manager, button, BUDGIE_POPOVER(popover));
 
         g_signal_connect(main_window, "destroy", gtk_main_quit, NULL);
