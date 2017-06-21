@@ -412,7 +412,7 @@ static void budgie_popover_grab_notify(GtkWidget *widget, gboolean was_grabbed,
         }
 
         g_message("Derp notify");
-        // budgie_popover_ungrab(BUDGIE_POPOVER(widget));
+        budgie_popover_ungrab(BUDGIE_POPOVER(widget));
 
         /* And being visible. ofc. */
         if (!gtk_widget_get_visible(widget)) {
@@ -420,6 +420,8 @@ static void budgie_popover_grab_notify(GtkWidget *widget, gboolean was_grabbed,
         }
 
         self = BUDGIE_POPOVER(widget);
+        budgie_popover_grab(self);
+        budgie_popover_ungrab(BUDGIE_POPOVER(widget));
         budgie_popover_grab(self);
 }
 
