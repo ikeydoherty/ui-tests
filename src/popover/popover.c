@@ -42,6 +42,7 @@ static void budgie_popover_load_css(void);
 static void budgie_popover_add(GtkContainer *container, GtkWidget *widget);
 static gboolean budgie_popover_button_press(GtkWidget *widget, GdkEventButton *button,
                                             gpointer udata);
+static gboolean budgie_popover_key_press(GtkWidget *widget, GdkEventKey *key, gpointer udata);
 
 /**
  * Used for storing BudgieTail calculations
@@ -157,6 +158,7 @@ static void budgie_popover_init(BudgiePopover *self)
         g_signal_connect(win, "grab-notify", G_CALLBACK(budgie_popover_grab_notify), NULL);
         g_signal_connect(win, "grab-broken-event", G_CALLBACK(budgie_popover_grab_broken), NULL);
         g_signal_connect(win, "button-press-event", G_CALLBACK(budgie_popover_button_press), NULL);
+        g_signal_connect(win, "key-press-event", G_CALLBACK(budgie_popover_key_press), NULL);
 
         /* Set up RGBA ability */
         screen = gtk_widget_get_screen(GTK_WIDGET(self));
@@ -458,6 +460,19 @@ static gboolean budgie_popover_button_press(GtkWidget *widget, GdkEventButton *b
         /* Happened outside, we're done. */
         gtk_widget_hide(widget);
         return GDK_EVENT_STOP;
+}
+
+/**
+ * If the Escape key is pressed, then we also need to close.
+ */
+static gboolean budgie_popover_key_press(GtkWidget *widget, GdkEventKey *key,
+                                         __budgie_unused__ gpointer udata)
+{
+        if (key->keyval == GDK_KEY_Escape) {
+                gtk_widget_hide(widget);
+                return GDK_EVENT_STOP;
+        }
+        return GDK_EVENT_PROPAGATE;
 }
 
 /*
