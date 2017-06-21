@@ -65,7 +65,31 @@ typedef struct BudgieTail {
  */
 GtkWidget *budgie_popover_new()
 {
-        return g_object_new(BUDGIE_TYPE_POPOVER, "type", GTK_WINDOW_POPUP, NULL);
+        /* Blame clang-format for weird wrapping */
+        return g_object_new(BUDGIE_TYPE_POPOVER,
+                            "decorated",
+                            FALSE,
+                            "deletable",
+                            FALSE,
+                            "focus-on-map",
+                            TRUE,
+                            "gravity",
+                            GDK_GRAVITY_NORTH_WEST,
+                            "modal",
+                            FALSE,
+                            "resizable",
+                            FALSE,
+                            "skip-pager-hint",
+                            TRUE,
+                            "skip-taskbar-hint",
+                            TRUE,
+                            "type",
+                            GTK_WINDOW_TOPLEVEL,
+                            "type-hint",
+                            GDK_WINDOW_TYPE_HINT_POPUP_MENU,
+                            "window-position",
+                            GTK_WIN_POS_CENTER,
+                            NULL);
 }
 
 /**
@@ -116,9 +140,6 @@ static void budgie_popover_init(BudgiePopover *self)
         budgie_popover_load_css();
 
         /* Setup window specific bits */
-        gtk_window_set_type_hint(win, GDK_WINDOW_TYPE_HINT_POPUP_MENU);
-        gtk_window_set_skip_pager_hint(win, TRUE);
-        gtk_window_set_skip_taskbar_hint(win, TRUE);
         gtk_window_set_position(win, GTK_WIN_POS_CENTER);
         g_signal_connect(win, "map-event", G_CALLBACK(budgie_popover_map), NULL);
         g_signal_connect(win, "unmap-event", G_CALLBACK(budgie_popover_unmap), NULL);
@@ -289,11 +310,14 @@ static void budgie_popover_grab(BudgiePopover *self)
         GdkSeatCapabilities caps = 0;
         GdkGrabStatus st;
 
+        g_message("regrab");
+
         if (self->grabbed) {
                 return;
         }
 
         window = gtk_widget_get_window(GTK_WIDGET(self));
+
         if (!window) {
                 g_warning("Attempting to grab BudgiePopover when not realized");
                 return;
@@ -302,12 +326,7 @@ static void budgie_popover_grab(BudgiePopover *self)
         display = gtk_widget_get_display(GTK_WIDGET(self));
         seat = gdk_display_get_default_seat(display);
 
-        if (gdk_seat_get_pointer(seat) != NULL) {
-                caps |= GDK_SEAT_CAPABILITY_ALL_POINTING;
-        }
-        if (gdk_seat_get_keyboard(seat) != NULL) {
-                caps |= GDK_SEAT_CAPABILITY_KEYBOARD;
-        }
+        caps = GDK_SEAT_CAPABILITY_ALL;
 
         st = gdk_seat_grab(seat, window, caps, TRUE, NULL, NULL, NULL, NULL);
         if (st == GDK_GRAB_SUCCESS) {
@@ -344,6 +363,8 @@ static gboolean budgie_popover_grab_broken(GtkWidget *widget, __budgie_unused__ 
 {
         BudgiePopover *self = NULL;
 
+        g_message("Broke");
+
         self = BUDGIE_POPOVER(widget);
         self->grabbed = FALSE;
         return GDK_EVENT_PROPAGATE;
@@ -364,6 +385,9 @@ static void budgie_popover_grab_notify(GtkWidget *widget, gboolean was_grabbed,
         if (!was_grabbed) {
                 return;
         }
+
+        g_message("Derp notify");
+        budgie_popover_ungrab(BUDGIE_POPOVER(widget));
 
         /* And being visible. ofc. */
         if (!gtk_widget_get_visible(widget)) {
