@@ -37,6 +37,8 @@ static void budgie_popover_manager_unlink_signals(BudgiePopoverManager *manager,
                                                   GtkWidget *parent_widget, BudgiePopover *popover);
 static gboolean budgie_popover_manager_coords_within_window(GtkWindow *window, gint root_x,
                                                             gint root_y);
+static GtkWidget *budgie_popover_manager_get_parent_at_coords(BudgiePopoverManager *self,
+                                                              gint root_x, gint root_y);
 
 /**
  * budgie_popover_manager_new:
@@ -155,9 +157,11 @@ static void budgie_popover_manager_unlink_signals(BudgiePopoverManager *self,
 /**
  * Handle an enter-notify for a widget to handle roll-over selection when grabbed
  */
-static gboolean budgie_popover_manager_enter_notify(BudgiePopoverManager *manager,
+static gboolean budgie_popover_manager_enter_notify(BudgiePopoverManager *self,
                                                     GdkEventCrossing *crossing, GtkWidget *widget)
 {
+        GtkWidget *target_activatable = NULL;
+
         /* We only want to hear about the grabbed events */
         if (!GTK_IS_WINDOW(widget)) {
                 return GDK_EVENT_PROPAGATE;
@@ -169,6 +173,18 @@ static gboolean budgie_popover_manager_enter_notify(BudgiePopoverManager *manage
                                                         (gint)crossing->y_root)) {
                 return GDK_EVENT_PROPAGATE;
         }
+
+        target_activatable = budgie_popover_manager_get_parent_at_coords(self,
+                                                                         (gint)crossing->x_root,
+                                                                         (gint)crossing->y_root);
+        if (!target_activatable) {
+                g_message("No target found");
+                return GDK_EVENT_PROPAGATE;
+        }
+
+        g_message("Got target %s %p",
+                  gtk_widget_get_name(target_activatable),
+                  (gpointer)target_activatable);
 
         g_message("enter-notify-event");
 
@@ -192,6 +208,42 @@ static gboolean budgie_popover_manager_coords_within_window(GtkWindow *window, g
                 return TRUE;
         }
         return FALSE;
+}
+
+/**
+ * After having received an enter notify event and determining that it isn't
+ * a BudgiePopover that we entered, we iterate our registered widgets and try
+ * to find the one matching the X, Y coordinates
+ */
+static GtkWidget *budgie_popover_manager_get_parent_at_coords(BudgiePopoverManager *self,
+                                                              gint root_x, gint root_y)
+{
+        GHashTableIter iter = { 0 };
+        GtkWidget *parent_widget = NULL;
+        __budgie_unused__ BudgiePopover *assoc_popover = NULL;
+
+        g_hash_table_iter_init(&iter, self->popovers);
+        while (g_hash_table_iter_next(&iter, (void **)&parent_widget, (void **)&assoc_popover)) {
+                GtkAllocation alloc = { 0 };
+                GtkWidget *toplevel = NULL;
+                GdkWindow *toplevel_window = NULL;
+                gint rx, ry = 0;
+                gint x, y = 0;
+
+                /* Determine the parent_widget's absolute x, y on screen */
+                toplevel = gtk_widget_get_toplevel(parent_widget);
+                toplevel_window = gtk_widget_get_window(toplevel);
+                gdk_window_get_position(toplevel_window, &x, &y);
+                gtk_widget_translate_coordinates(parent_widget, toplevel, x, y, &rx, &ry);
+                gtk_widget_get_allocation(parent_widget, &alloc);
+
+                if ((root_x >= rx && root_x <= rx + alloc.width) &&
+                    (root_y >= ry && root_y <= ry + alloc.height)) {
+                        return parent_widget;
+                }
+        }
+
+        return NULL;
 }
 
 /*
