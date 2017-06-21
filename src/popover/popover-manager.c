@@ -24,9 +24,15 @@ struct _BudgiePopoverManagerClass {
 
 struct _BudgiePopoverManager {
         GObject parent;
+        GHashTable *popovers;
 };
 
 G_DEFINE_TYPE(BudgiePopoverManager, budgie_popover_manager, G_TYPE_OBJECT)
+
+static void budgie_popover_manager_link_signals(BudgiePopoverManager *manager,
+                                                GtkWidget *parent_widget, BudgiePopover *popover);
+static void budgie_popover_manager_unlink_signals(BudgiePopoverManager *manager,
+                                                  GtkWidget *parent_widget, BudgiePopover *popover);
 
 /**
  * budgie_popover_manager_new:
@@ -45,6 +51,11 @@ BudgiePopoverManager *budgie_popover_manager_new()
  */
 static void budgie_popover_manager_dispose(GObject *obj)
 {
+        BudgiePopoverManager *self = NULL;
+
+        self = BUDGIE_POPOVER_MANAGER(obj);
+        g_clear_pointer(&self->popovers, g_hash_table_unref);
+
         G_OBJECT_CLASS(budgie_popover_manager_parent_class)->dispose(obj);
 }
 
@@ -66,31 +77,70 @@ static void budgie_popover_manager_class_init(BudgiePopoverManagerClass *klazz)
  *
  * Handle construction of the BudgiePopoverManager
  */
-static void budgie_popover_manager_init(__budgie_unused__ BudgiePopoverManager *self)
+static void budgie_popover_manager_init(BudgiePopoverManager *self)
 {
+        /* We don't re-ref anything as we just effectively hold floating references
+         * to the WhateverTheyAres
+         */
+        self->popovers = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, NULL);
 }
 
-void budgie_popover_manager_register_popover(BudgiePopoverManager *manager,
-                                             GtkWidget *parent_widget, BudgiePopover *popover)
+void budgie_popover_manager_register_popover(BudgiePopoverManager *self, GtkWidget *parent_widget,
+                                             BudgiePopover *popover)
 {
-        g_assert(manager != NULL);
+        g_assert(self != NULL);
         g_return_if_fail(parent_widget != NULL && popover != NULL);
-        g_warning("register_popover(): not yet implemented");
+
+        if (g_hash_table_contains(self->popovers, parent_widget)) {
+                g_warning("register_popover(): Widget %p is already registered",
+                          (gpointer)parent_widget);
+                return;
+        }
+
+        /* Stick it into the map and hook it up */
+        budgie_popover_manager_link_signals(self, parent_widget, popover);
+        g_hash_table_insert(self->popovers, parent_widget, popover);
 }
 
-void budgie_popover_manager_unregister_popover(BudgiePopoverManager *manager,
-                                               GtkWidget *parent_widget)
+void budgie_popover_manager_unregister_popover(BudgiePopoverManager *self, GtkWidget *parent_widget)
 {
-        g_assert(manager != NULL);
+        g_assert(self != NULL);
         g_return_if_fail(parent_widget != NULL);
-        g_warning("unregister_popover(): not yet implemented");
+        BudgiePopover *popover = NULL;
+
+        popover = g_hash_table_lookup(self->popovers, parent_widget);
+        if (!popover) {
+                g_warning("unregister_popover(): Widget %p is unknown", (gpointer)parent_widget);
+                return;
+        }
+
+        budgie_popover_manager_unlink_signals(self, parent_widget, popover);
+        g_hash_table_remove(self->popovers, parent_widget);
 }
 
-void budgie_popover_manager_show_popover(BudgiePopover *manager, GtkWidget *parent_widget)
+void budgie_popover_manager_show_popover(BudgiePopover *self, GtkWidget *parent_widget)
 {
-        g_assert(manager != NULL);
+        g_assert(self != NULL);
         g_return_if_fail(parent_widget != NULL);
         g_warning("show_popover(): not yet implemented");
+}
+
+/**
+ * Hook up the various signals we need to manage this popover correctly
+ */
+static void budgie_popover_manager_link_signals(BudgiePopoverManager *self,
+                                                GtkWidget *parent_widget, BudgiePopover *popover)
+{
+        g_warning("link_signals(): not yet implemented");
+}
+
+/**
+ * Disconnect any prior signals for this popover so we stop receiving events for it
+ */
+static void budgie_popover_manager_unlink_signals(BudgiePopoverManager *self,
+                                                  GtkWidget *parent_widget, BudgiePopover *popover)
+{
+        g_warning("unlink_signals(): not yet implemented");
 }
 
 /*
