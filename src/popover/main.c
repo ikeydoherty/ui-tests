@@ -76,7 +76,6 @@ int main(int argc, char **argv)
         gtk_box_pack_start(GTK_BOX(layout), entry, TRUE, TRUE, 2);
 
         button = gtk_button_new_with_label("Click me!");
-        gtk_button_set_relief(GTK_BUTTON(button), GTK_RELIEF_NONE);
         g_signal_connect(button, "clicked", G_CALLBACK(button_click_cb), window);
         gtk_box_pack_end(GTK_BOX(layout), button, FALSE, FALSE, 2);
 
