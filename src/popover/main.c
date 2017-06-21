@@ -33,13 +33,6 @@ static void show_popover_cb(__budgie_unused__ GtkWidget *window, gpointer udata)
         gtk_widget_show_all(popover);
 }
 
-static gboolean enter(GtkWidget *widget, __budgie_unused__ GdkEventCrossing *event,
-                      __budgie_unused__ gpointer udata)
-{
-        g_message("Inside: %s", gtk_widget_get_name(widget));
-        return GDK_EVENT_PROPAGATE;
-}
-
 static GtkWidget *sudo_make_me_a_popover(void)
 {
         GtkWidget *popover = NULL;
@@ -61,7 +54,6 @@ static GtkWidget *sudo_make_me_a_popover(void)
 
         /* Popovery methods */
         g_signal_connect(popover, "destroy", gtk_main_quit, NULL);
-        g_signal_connect_after(popover, "enter-notify-event", G_CALLBACK(enter), popover);
         g_signal_connect_after(popover, "button-press-event", gtk_main_quit, popover);
 
         return popover;
