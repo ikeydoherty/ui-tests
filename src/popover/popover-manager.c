@@ -70,6 +70,29 @@ static void budgie_popover_manager_init(__budgie_unused__ BudgiePopoverManager *
 {
 }
 
+void budgie_popover_manager_register_popover(BudgiePopoverManager *manager,
+                                             GtkWidget *parent_widget, BudgiePopover *popover)
+{
+        g_assert(manager != NULL);
+        g_return_if_fail(parent_widget != NULL && popover != NULL);
+        g_warning("register_popover(): not yet implemented");
+}
+
+void budgie_popover_manager_unregister_popover(BudgiePopoverManager *manager,
+                                               GtkWidget *parent_widget)
+{
+        g_assert(manager != NULL);
+        g_return_if_fail(parent_widget != NULL);
+        g_warning("unregister_popover(): not yet implemented");
+}
+
+void budgie_popover_manager_show_popover(BudgiePopover *manager, GtkWidget *parent_widget)
+{
+        g_assert(manager != NULL);
+        g_return_if_fail(parent_widget != NULL);
+        g_warning("show_popover(): not yet implemented");
+}
+
 /*
  * Editor modelines  -  https://www.wireshark.org/tools/modelines.html
  *
