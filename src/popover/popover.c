@@ -86,7 +86,7 @@ GtkWidget *budgie_popover_new()
                             "skip-taskbar-hint",
                             TRUE,
                             "type",
-                            GTK_WINDOW_TOPLEVEL,
+                            GTK_WINDOW_POPUP,
                             "type-hint",
                             GDK_WINDOW_TYPE_HINT_POPUP_MENU,
                             "window-position",
