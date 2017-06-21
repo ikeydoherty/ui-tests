@@ -53,7 +53,6 @@ static GtkWidget *sudo_make_me_a_popover(const gchar *le_label)
 
         /* Popovery methods */
         g_signal_connect(popover, "destroy", gtk_main_quit, NULL);
-        g_signal_connect_after(popover, "button-press-event", gtk_main_quit, popover);
 
         return popover;
 }

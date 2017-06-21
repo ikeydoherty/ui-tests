@@ -40,6 +40,8 @@ static void budgie_popover_grab(BudgiePopover *self);
 static void budgie_popover_ungrab(BudgiePopover *self);
 static void budgie_popover_load_css(void);
 static void budgie_popover_add(GtkContainer *container, GtkWidget *widget);
+static gboolean budgie_popover_button_press(GtkWidget *widget, GdkEventButton *button,
+                                            gpointer udata);
 
 /**
  * Used for storing BudgieTail calculations
@@ -154,6 +156,7 @@ static void budgie_popover_init(BudgiePopover *self)
         g_signal_connect(win, "unmap-event", G_CALLBACK(budgie_popover_unmap), NULL);
         g_signal_connect(win, "grab-notify", G_CALLBACK(budgie_popover_grab_notify), NULL);
         g_signal_connect(win, "grab-broken-event", G_CALLBACK(budgie_popover_grab_broken), NULL);
+        g_signal_connect(win, "button-press-event", G_CALLBACK(budgie_popover_button_press), NULL);
 
         /* Set up RGBA ability */
         screen = gtk_widget_get_screen(GTK_WIDGET(self));
@@ -431,6 +434,30 @@ static void budgie_popover_add(GtkContainer *container, GtkWidget *widget)
         }
 
         gtk_container_add(GTK_CONTAINER(self->add_area), widget);
+}
+
+/**
+ * If the mouse button is pressed outside of our window, that's our cue to close.
+ */
+static gboolean budgie_popover_button_press(GtkWidget *widget, GdkEventButton *button,
+                                            __budgie_unused__ gpointer udata)
+{
+        gint x, y = 0;
+        gint w, h = 0;
+        gtk_window_get_position(GTK_WINDOW(widget), &x, &y);
+        gtk_window_get_size(GTK_WINDOW(widget), &w, &h);
+
+        gint root_x = (gint)button->x_root;
+        gint root_y = (gint)button->y_root;
+
+        /* Inside our window? Continue as normal. */
+        if ((root_x >= x && root_x <= x + w) && (root_y >= y && root_y <= y + h)) {
+                return GDK_EVENT_PROPAGATE;
+        }
+
+        /* Happened outside, we're done. */
+        gtk_widget_hide(widget);
+        return GDK_EVENT_STOP;
 }
 
 /*
