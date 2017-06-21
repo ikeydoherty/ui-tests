@@ -13,6 +13,7 @@
 #include <stdlib.h>
 
 BUDGIE_BEGIN_PEDANTIC
+#include "popover-manager.h"
 #include "popover.h"
 BUDGIE_END_PEDANTIC
 
@@ -70,10 +71,12 @@ int main(int argc, char **argv)
 {
         gtk_init(&argc, &argv);
         GtkWidget *popover = NULL;
+        BudgiePopoverManager *manager = NULL;
 
         GtkWidget *main_window = NULL;
         GtkWidget *button, *layout = NULL;
 
+        manager = budgie_popover_manager_new();
         g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", FALSE, NULL);
 
         /* Create popover */
@@ -86,7 +89,9 @@ int main(int argc, char **argv)
         gtk_widget_set_valign(layout, GTK_ALIGN_CENTER);
         gtk_container_add(GTK_CONTAINER(main_window), layout);
 
+        /* Hook up the popover to the actionable button */
         button = gtk_button_new_with_label("Click me #1");
+        budgie_popover_manager_register_popover(manager, button, BUDGIE_POPOVER(popover));
 
         gtk_box_pack_start(GTK_BOX(layout), button, FALSE, FALSE, 0);
         g_signal_connect(button, "clicked", G_CALLBACK(show_popover_cb), popover);
@@ -101,6 +106,8 @@ int main(int argc, char **argv)
 
         /* Run */
         gtk_main();
+
+        g_object_unref(manager);
 
         return EXIT_SUCCESS;
 }

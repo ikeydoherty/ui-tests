@@ -29,6 +29,8 @@ struct _BudgiePopoverManager {
 
 G_DEFINE_TYPE(BudgiePopoverManager, budgie_popover_manager, G_TYPE_OBJECT)
 
+static gboolean budgie_popover_manager_enter_notify(BudgiePopoverManager *manager,
+                                                    GdkEventCrossing *crossing, GtkWidget *widget);
 static void budgie_popover_manager_link_signals(BudgiePopoverManager *manager,
                                                 GtkWidget *parent_widget, BudgiePopover *popover);
 static void budgie_popover_manager_unlink_signals(BudgiePopoverManager *manager,
@@ -131,7 +133,12 @@ void budgie_popover_manager_show_popover(BudgiePopover *self, GtkWidget *parent_
 static void budgie_popover_manager_link_signals(BudgiePopoverManager *self,
                                                 GtkWidget *parent_widget, BudgiePopover *popover)
 {
-        g_warning("link_signals(): not yet implemented");
+        /* Need enter-notify to check if we entered a parent widget */
+        g_signal_connect_swapped(popover,
+                                 "enter-notify-event",
+                                 G_CALLBACK(budgie_popover_manager_enter_notify),
+                                 self);
+        g_warning("link_signals(): not yet fully implemented");
 }
 
 /**
@@ -140,7 +147,17 @@ static void budgie_popover_manager_link_signals(BudgiePopoverManager *self,
 static void budgie_popover_manager_unlink_signals(BudgiePopoverManager *self,
                                                   GtkWidget *parent_widget, BudgiePopover *popover)
 {
-        g_warning("unlink_signals(): not yet implemented");
+        g_signal_handlers_disconnect_by_data(popover, self);
+}
+
+/**
+ * Handle an enter-notify for a widget to handle roll-over selection when grabbed
+ */
+static gboolean budgie_popover_manager_enter_notify(BudgiePopoverManager *manager,
+                                                    GdkEventCrossing *crossing, GtkWidget *widget)
+{
+        g_message("enter-notify-event");
+        return GDK_EVENT_PROPAGATE;
 }
 
 /*
