@@ -26,6 +26,7 @@ struct _BudgiePopover {
         GtkWindow parent;
 
         gboolean grabbed;
+        GtkWidget *add_area;
 };
 
 G_DEFINE_TYPE(BudgiePopover, budgie_popover, GTK_TYPE_WINDOW)
@@ -38,6 +39,7 @@ static gboolean budgie_popover_grab_broken(GtkWidget *widget, GdkEvent *event, g
 static void budgie_popover_grab(BudgiePopover *self);
 static void budgie_popover_ungrab(BudgiePopover *self);
 static void budgie_popover_load_css(void);
+static void budgie_popover_add(GtkContainer *container, GtkWidget *widget);
 
 /**
  * Used for storing BudgieTail calculations
@@ -111,12 +113,15 @@ static void budgie_popover_class_init(BudgiePopoverClass *klazz)
 {
         GObjectClass *obj_class = G_OBJECT_CLASS(klazz);
         GtkWidgetClass *wid_class = GTK_WIDGET_CLASS(klazz);
+        GtkContainerClass *cont_class = GTK_CONTAINER_CLASS(klazz);
 
         /* gobject vtable hookup */
         obj_class->dispose = budgie_popover_dispose;
 
         /* widget vtable hookup */
         wid_class->draw = budgie_popover_draw;
+
+        cont_class->add = budgie_popover_add;
 }
 
 /**
@@ -135,6 +140,10 @@ static void budgie_popover_init(BudgiePopover *self)
 
         style = gtk_widget_get_style_context(GTK_WIDGET(self));
         gtk_style_context_add_class(style, "budgie-popover");
+
+        self->add_area = gtk_event_box_new();
+        gtk_container_add(GTK_CONTAINER(self), self->add_area);
+        gtk_widget_show_all(self->add_area);
 
         /* Hacky demo */
         budgie_popover_load_css();
@@ -156,7 +165,16 @@ static void budgie_popover_init(BudgiePopover *self)
         gtk_widget_set_app_paintable(GTK_WIDGET(self), TRUE);
 
         /* TESTING: To let us develop the tail render code */
-        gtk_container_set_border_width(GTK_CONTAINER(self), 40);
+        g_object_set(self->add_area,
+                     "margin-top",
+                     10,
+                     "margin-bottom",
+                     20,
+                     "margin-start",
+                     5,
+                     "margin-end",
+                     5,
+                     NULL);
 }
 
 static void budgie_popover_compute_tail(GtkWidget *widget, BudgieTail *tail)
@@ -396,6 +414,21 @@ static void budgie_popover_grab_notify(GtkWidget *widget, gboolean was_grabbed,
 
         self = BUDGIE_POPOVER(widget);
         budgie_popover_grab(self);
+}
+
+static void budgie_popover_add(GtkContainer *container, GtkWidget *widget)
+{
+        BudgiePopover *self = NULL;
+
+        self = BUDGIE_POPOVER(container);
+
+        /* Only add internal area to self for real. Anything else goes to add_area */
+        if (widget == self->add_area) {
+                GTK_CONTAINER_CLASS(budgie_popover_parent_class)->add(container, widget);
+                return;
+        }
+
+        gtk_container_add(GTK_CONTAINER(self->add_area), widget);
 }
 
 /*
