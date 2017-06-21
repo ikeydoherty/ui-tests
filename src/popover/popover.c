@@ -308,13 +308,13 @@ static gboolean budgie_popover_map(GtkWidget *widget, __budgie_unused__ gpointer
 
         budgie_popover_grab(BUDGIE_POPOVER(widget));
 
-        return GDK_EVENT_STOP;
+        return GDK_EVENT_PROPAGATE;
 }
 
 static gboolean budgie_popover_unmap(GtkWidget *widget, __budgie_unused__ gpointer udata)
 {
         budgie_popover_ungrab(BUDGIE_POPOVER(widget));
-        return GDK_EVENT_STOP;
+        return GDK_EVENT_PROPAGATE;
 }
 
 /**
@@ -405,7 +405,7 @@ static void budgie_popover_grab_notify(GtkWidget *widget, gboolean was_grabbed,
         }
 
         g_message("Derp notify");
-        budgie_popover_ungrab(BUDGIE_POPOVER(widget));
+        // budgie_popover_ungrab(BUDGIE_POPOVER(widget));
 
         /* And being visible. ofc. */
         if (!gtk_widget_get_visible(widget)) {

@@ -22,7 +22,6 @@ static void button_click_cb(__budgie_unused__ GtkWidget *pop, gpointer udata)
         GtkWidget *popover = udata;
 
         gtk_widget_hide(popover);
-        gtk_widget_destroy(popover);
 }
 
 static void show_popover_cb(__budgie_unused__ GtkWidget *window, gpointer udata)

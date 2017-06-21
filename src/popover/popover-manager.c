@@ -25,6 +25,7 @@ struct _BudgiePopoverManagerClass {
 struct _BudgiePopoverManager {
         GObject parent;
         GHashTable *popovers;
+        BudgiePopover *active_popover;
 };
 
 G_DEFINE_TYPE(BudgiePopoverManager, budgie_popover_manager, G_TYPE_OBJECT)
@@ -39,6 +40,10 @@ static gboolean budgie_popover_manager_coords_within_window(GtkWindow *window, g
                                                             gint root_y);
 static GtkWidget *budgie_popover_manager_get_parent_at_coords(BudgiePopoverManager *self,
                                                               gint root_x, gint root_y);
+static gboolean budgie_popover_manager_popover_mapped(BudgiePopover *popover, GdkEvent *event,
+                                                      BudgiePopoverManager *self);
+static gboolean budgie_popover_manager_popover_unmapped(BudgiePopover *popover, GdkEvent *event,
+                                                        BudgiePopoverManager *self);
 
 /**
  * budgie_popover_manager_new:
@@ -142,6 +147,14 @@ static void budgie_popover_manager_link_signals(BudgiePopoverManager *self,
                                  "enter-notify-event",
                                  G_CALLBACK(budgie_popover_manager_enter_notify),
                                  self);
+        g_signal_connect(popover,
+                         "map-event",
+                         G_CALLBACK(budgie_popover_manager_popover_mapped),
+                         self);
+        g_signal_connect(popover,
+                         "unmap-event",
+                         G_CALLBACK(budgie_popover_manager_popover_unmapped),
+                         self);
         g_warning("link_signals(): not yet fully implemented");
 }
 
@@ -161,6 +174,7 @@ static gboolean budgie_popover_manager_enter_notify(BudgiePopoverManager *self,
                                                     GdkEventCrossing *crossing, GtkWidget *widget)
 {
         GtkWidget *target_activatable = NULL;
+        GtkWidget *target_popover = NULL;
 
         /* We only want to hear about the grabbed events */
         if (!GTK_IS_WINDOW(widget)) {
@@ -182,13 +196,26 @@ static gboolean budgie_popover_manager_enter_notify(BudgiePopoverManager *self,
                 return GDK_EVENT_PROPAGATE;
         }
 
+        /* Don't show the same popover again. :P */
+        target_popover = g_hash_table_lookup(self->popovers, target_activatable);
+        if (target_popover == self->active_popover) {
+                return GDK_EVENT_PROPAGATE;
+        }
+
         g_message("Got target %s %p",
                   gtk_widget_get_name(target_activatable),
                   (gpointer)target_activatable);
 
         g_message("enter-notify-event");
 
-        return GDK_EVENT_PROPAGATE;
+        if (self->active_popover) {
+                gtk_widget_hide(GTK_WIDGET(self->active_popover));
+                self->active_popover = NULL;
+        }
+
+        gtk_widget_show_all(target_popover);
+
+        return GDK_EVENT_STOP;
 }
 
 /**
@@ -244,6 +271,30 @@ static GtkWidget *budgie_popover_manager_get_parent_at_coords(BudgiePopoverManag
         }
 
         return NULL;
+}
+
+/**
+ * Handle the BudgiePopover becoming visible on screen, updating our knowledge
+ * of who the currently active popover is
+ */
+static gboolean budgie_popover_manager_popover_mapped(BudgiePopover *popover, GdkEvent *event,
+                                                      BudgiePopoverManager *self)
+{
+        self->active_popover = popover;
+        return GDK_EVENT_PROPAGATE;
+}
+
+/**
+ * Handle the BudgiePopover becoming invisible on screen, updating our knowledge
+ * of who the currently active popover is
+ */
+static gboolean budgie_popover_manager_popover_unmapped(BudgiePopover *popover, GdkEvent *event,
+                                                        BudgiePopoverManager *self)
+{
+        if (popover == self->active_popover) {
+                self->active_popover = NULL;
+        }
+        return GDK_EVENT_PROPAGATE;
 }
 
 /*
