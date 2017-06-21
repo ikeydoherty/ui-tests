@@ -15,6 +15,8 @@ noinst_PROGRAMS = \
 popover_test_SOURCES = \
 	src/popover/popover.h \
 	src/popover/popover.c \
+	src/popover/popover-manager.h \
+	src/popover/popover-manager.c \
 	src/popover/main.c
 
 popover_test_CFLAGS = \
