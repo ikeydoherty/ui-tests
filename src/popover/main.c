@@ -39,17 +39,45 @@ static gboolean enter(GtkWidget *widget, __budgie_unused__ GdkEventCrossing *eve
         return GDK_EVENT_PROPAGATE;
 }
 
+static GtkWidget *sudo_make_me_a_popover(void)
+{
+        GtkWidget *popover = NULL;
+        GtkWidget *entry, *button, *layout = NULL;
+
+        popover = budgie_popover_new();
+
+        layout = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+        gtk_container_add(GTK_CONTAINER(popover), layout);
+
+        /* Add content */
+        entry = gtk_entry_new();
+        gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Type here!");
+        gtk_box_pack_start(GTK_BOX(layout), entry, TRUE, TRUE, 2);
+
+        button = gtk_button_new_with_label("Click me!");
+        g_signal_connect(button, "clicked", G_CALLBACK(button_click_cb), popover);
+        gtk_box_pack_end(GTK_BOX(layout), button, FALSE, FALSE, 2);
+
+        /* Popovery methods */
+        g_signal_connect(popover, "destroy", gtk_main_quit, NULL);
+        g_signal_connect_after(popover, "enter-notify-event", G_CALLBACK(enter), popover);
+        g_signal_connect_after(popover, "button-press-event", gtk_main_quit, popover);
+
+        return popover;
+}
+
 int main(int argc, char **argv)
 {
         gtk_init(&argc, &argv);
-        GtkWidget *window = NULL;
-        GtkWidget *entry, *button, *layout = NULL;
+        GtkWidget *popover = NULL;
+
         GtkWidget *main_window = NULL;
+        GtkWidget *button, *layout = NULL;
 
         g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", FALSE, NULL);
 
         /* Create popover */
-        window = budgie_popover_new();
+        popover = sudo_make_me_a_popover();
 
         main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
         gtk_widget_set_size_request(main_window, 400, 400);
@@ -61,31 +89,13 @@ int main(int argc, char **argv)
         button = gtk_button_new_with_label("Click me #1");
 
         gtk_box_pack_start(GTK_BOX(layout), button, FALSE, FALSE, 0);
-        g_signal_connect(button, "clicked", G_CALLBACK(show_popover_cb), window);
+        g_signal_connect(button, "clicked", G_CALLBACK(show_popover_cb), popover);
 
         button = gtk_button_new_with_label("Click me #2");
         gtk_box_pack_start(GTK_BOX(layout), button, FALSE, FALSE, 0);
-        g_signal_connect(button, "clicked", G_CALLBACK(show_popover_cb), window);
+        g_signal_connect(button, "clicked", G_CALLBACK(show_popover_cb), popover);
 
-        layout = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-        gtk_container_add(GTK_CONTAINER(window), layout);
-
-        /* Add content */
-        entry = gtk_entry_new();
-        gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Type here!");
-        gtk_box_pack_start(GTK_BOX(layout), entry, TRUE, TRUE, 2);
-
-        button = gtk_button_new_with_label("Click me!");
-        g_signal_connect(button, "clicked", G_CALLBACK(button_click_cb), window);
-        gtk_box_pack_end(GTK_BOX(layout), button, FALSE, FALSE, 2);
-
-        /* Render popover */
-        g_signal_connect(window, "destroy", gtk_main_quit, NULL);
         g_signal_connect(main_window, "destroy", gtk_main_quit, NULL);
-
-        /* Popovery methods */
-        g_signal_connect_after(window, "enter-notify-event", G_CALLBACK(enter), window);
-        g_signal_connect_after(window, "button-press-event", gtk_main_quit, window);
 
         gtk_widget_show_all(main_window);
 
