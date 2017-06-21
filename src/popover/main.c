@@ -76,7 +76,7 @@ int main(int argc, char **argv)
         main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
         gtk_widget_set_size_request(main_window, 400, 400);
 
-        layout = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+        layout = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
         gtk_widget_set_valign(layout, GTK_ALIGN_CENTER);
         gtk_container_add(GTK_CONTAINER(main_window), layout);
 
