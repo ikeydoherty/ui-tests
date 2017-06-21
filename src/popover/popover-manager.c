@@ -35,6 +35,8 @@ static void budgie_popover_manager_link_signals(BudgiePopoverManager *manager,
                                                 GtkWidget *parent_widget, BudgiePopover *popover);
 static void budgie_popover_manager_unlink_signals(BudgiePopoverManager *manager,
                                                   GtkWidget *parent_widget, BudgiePopover *popover);
+static gboolean budgie_popover_manager_coords_within_window(GtkWindow *window, gint root_x,
+                                                            gint root_y);
 
 /**
  * budgie_popover_manager_new:
@@ -156,8 +158,40 @@ static void budgie_popover_manager_unlink_signals(BudgiePopoverManager *self,
 static gboolean budgie_popover_manager_enter_notify(BudgiePopoverManager *manager,
                                                     GdkEventCrossing *crossing, GtkWidget *widget)
 {
+        /* We only want to hear about the grabbed events */
+        if (!GTK_IS_WINDOW(widget)) {
+                return GDK_EVENT_PROPAGATE;
+        }
+
+        /* If we're inside the popover, not interested. */
+        if (budgie_popover_manager_coords_within_window(GTK_WINDOW(widget),
+                                                        (gint)crossing->x_root,
+                                                        (gint)crossing->y_root)) {
+                return GDK_EVENT_PROPAGATE;
+        }
+
         g_message("enter-notify-event");
+
         return GDK_EVENT_PROPAGATE;
+}
+
+/**
+ * Window specific method that determines if X,Y is currently within the
+ * confines of the GtkWindow. This helps us quickly determine that we've
+ * re-entered a BudgiePopover and don't need to find an associated window.
+ */
+static gboolean budgie_popover_manager_coords_within_window(GtkWindow *window, gint root_x,
+                                                            gint root_y)
+{
+        gint x, y = 0;
+        gint w, h = 0;
+        gtk_window_get_position(window, &x, &y);
+        gtk_window_get_size(window, &w, &h);
+
+        if ((root_x >= x && root_x <= x + w) && (root_y >= y && root_y <= y + h)) {
+                return TRUE;
+        }
+        return FALSE;
 }
 
 /*
