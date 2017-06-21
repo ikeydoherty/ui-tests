@@ -307,6 +307,8 @@ static gboolean budgie_popover_map(GtkWidget *widget, __budgie_unused__ gpointer
         gtk_window_present(GTK_WINDOW(widget));
 
         budgie_popover_grab(BUDGIE_POPOVER(widget));
+        budgie_popover_ungrab(BUDGIE_POPOVER(widget));
+        budgie_popover_grab(BUDGIE_POPOVER(widget));
 
         return GDK_EVENT_PROPAGATE;
 }
