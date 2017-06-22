@@ -352,7 +352,10 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
         GtkPositionType tail_position = GTK_POS_BOTTOM;
         gint our_width = 0, our_height = 0;
         GtkWidget *parent_window = NULL;
+        GtkStyleContext *style = NULL;
         int x = 0, y = 0, width = 0, height = 0;
+        static const gchar *position_classes[] = { "top", "left", "right", "bottom" };
+        const gchar *style_class = NULL;
 
         /* Find out where the widget is on screen */
         budgie_popover_compute_widget_geometry(self->priv->relative_to, &widget_rect);
@@ -393,6 +396,7 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
                              "margin-end",
                              5,
                              NULL);
+                style_class = "bottom";
                 break;
         case GTK_POS_TOP:
                 /* We need to appear below the widget */
@@ -408,6 +412,7 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
                              "margin-end",
                              5,
                              NULL);
+                style_class = "top";
                 break;
         case GTK_POS_LEFT:
                 /* We need to appear to the right of the widget */
@@ -424,6 +429,7 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
                              "margin-end",
                              5,
                              NULL);
+                style_class = "left";
                 break;
         case GTK_POS_RIGHT:
                 y = (widget_rect.y + (widget_rect.height / 2)) - (our_height / 2);
@@ -439,6 +445,7 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
                              "margin-end",
                              15,
                              NULL);
+                style_class = "right";
                 break;
         default:
                 break;
@@ -448,6 +455,16 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
         *target = (GdkRectangle){.x = x, .y = y, .width = width, .height = height };
         self->priv->tail.position = tail_position;
         budgie_popover_compute_tail(self);
+
+        /* Allow themers to know what kind of popover this is, and set the
+         * CSS class in accordance with the direction that the popover is
+         * pointing in.
+         */
+        style = gtk_widget_get_style_context(GTK_WIDGET(self));
+        for (guint i = 0; i < G_N_ELEMENTS(position_classes); i++) {
+                gtk_style_context_remove_class(style, position_classes[i]);
+        }
+        gtk_style_context_add_class(style, style_class);
 }
 
 static void budgie_popover_compute_tail(BudgiePopover *self)
