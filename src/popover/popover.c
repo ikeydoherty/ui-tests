@@ -279,7 +279,9 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
                 gtk_container_propagate_draw(GTK_CONTAINER(widget), child, cr);
         }
 
-        cairo_set_line_width(cr, border.bottom);
+        cairo_set_line_width(cr, 1.3);
+        cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
+        cairo_set_line_join(cr, CAIRO_LINE_JOIN_BEVEL);
         cairo_set_source_rgba(cr,
                               border_color.red,
                               border_color.green,
