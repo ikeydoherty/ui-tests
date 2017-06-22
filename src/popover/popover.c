@@ -186,6 +186,7 @@ static void budgie_popover_map(GtkWidget *widget)
 
         /* Work out where we go on screen now */
         budgie_popover_compute_positition(self, &coords);
+        gtk_widget_queue_draw(widget);
 
         g_message("Appearing at X, Y: %d %d", coords.x, coords.y);
 
@@ -374,7 +375,7 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
                 }
         }
 
-        tail_position = GTK_POS_BOTTOM;
+        tail_position = GTK_POS_RIGHT;
 
         /* Now work out where we live on screen */
         switch (tail_position) {
@@ -471,7 +472,7 @@ static void budgie_popover_compute_tail(BudgiePopover *self)
                 t.y = alloc.y + (alloc.height / 2);
                 t.start_y = t.y - TAIL_HEIGHT;
                 t.end_y = t.y + TAIL_HEIGHT;
-                t.start_x = t.end_x = t.x - TAIL_HEIGHT;
+                t.start_x = t.end_x = t.x - TAIL_HEIGHT - SHADOW_DIMENSION;
                 break;
         case GTK_POS_BOTTOM:
         default:
@@ -541,6 +542,11 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
         // body_alloc.width -= SHADOW_DIMENSION * 2;
         // body_alloc.height -= SHADOW_DIMENSION * 2;
 
+        body_alloc.x += SHADOW_DIMENSION;
+        body_alloc.width -= SHADOW_DIMENSION * 2;
+        body_alloc.y += SHADOW_DIMENSION;
+        body_alloc.height -= SHADOW_DIMENSION * 2;
+
         switch (self->priv->tail.position) {
         case GTK_POS_LEFT:
                 body_alloc.width -= TAIL_HEIGHT;
@@ -549,7 +555,7 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
                 gap_start = tail->end_y;
                 break;
         case GTK_POS_RIGHT:
-                body_alloc.width -= TAIL_DIMENSION * 2;
+                body_alloc.width -= TAIL_HEIGHT;
                 gap_start = tail->start_y;
                 gap_start = tail->end_y;
                 break;
@@ -558,10 +564,6 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
                 body_alloc.height -= TAIL_HEIGHT;
                 gap_start = tail->start_x;
                 gap_start = tail->end_x;
-                body_alloc.x += SHADOW_DIMENSION;
-                body_alloc.width -= SHADOW_DIMENSION * 2;
-                body_alloc.y += SHADOW_DIMENSION;
-                body_alloc.height -= SHADOW_DIMENSION * 2;
                 break;
         }
 
