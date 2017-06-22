@@ -375,7 +375,7 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
                 }
         }
 
-        tail_position = GTK_POS_RIGHT;
+        tail_position = GTK_POS_LEFT;
 
         /* Now work out where we live on screen */
         switch (tail_position) {
@@ -465,7 +465,7 @@ static void budgie_popover_compute_tail(BudgiePopover *self)
                 t.y = alloc.y + (alloc.height / 2);
                 t.start_y = t.y - TAIL_HEIGHT;
                 t.end_y = t.y + TAIL_HEIGHT;
-                t.start_x = t.end_x = t.x + TAIL_HEIGHT;
+                t.start_x = t.end_x = t.x + TAIL_HEIGHT + SHADOW_DIMENSION;
                 break;
         case GTK_POS_RIGHT:
                 t.x = alloc.width;
