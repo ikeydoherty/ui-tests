@@ -390,10 +390,12 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
         case GTK_POS_LEFT:
                 /* We need to appear to the right of the widget */
                 y = (widget_rect.y + (widget_rect.height / 2)) - (our_height / 2);
+                y += TAIL_DIMENSION / 4;
                 x = widget_rect.x + widget_rect.width;
                 break;
         case GTK_POS_RIGHT:
                 y = (widget_rect.y + (widget_rect.height / 2)) - (our_height / 2);
+                y += TAIL_DIMENSION / 4;
                 x = widget_rect.x - our_width;
                 break;
         default:
