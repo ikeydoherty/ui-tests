@@ -18,6 +18,13 @@ BUDGIE_BEGIN_PEDANTIC
 #include <gtk/gtk.h>
 BUDGIE_END_PEDANTIC
 
+/**
+ * We'll likely take this from a style property in future, but for now it
+ * is both the width and height of a tail
+ */
+#define TAIL_DIMENSION 20
+#define SHADOW_DIMENSION 4
+
 struct _BudgiePopoverClass {
         GtkWindowClass parent_class;
 };
@@ -28,6 +35,24 @@ struct _BudgiePopover {
         gboolean grabbed;
         GtkWidget *add_area;
         GtkWidget *relative_to;
+};
+
+/**
+ * Used for storing BudgieTail calculations
+ */
+typedef struct BudgieTail {
+        double start_x;
+        double start_y;
+        double end_x;
+        double end_y;
+        double x;
+        double y;
+} BudgieTail;
+
+enum { PROP_RELATIVE_TO = 1, N_PROPS };
+
+static GParamSpec *obj_properties[N_PROPS] = {
+        NULL,
 };
 
 G_DEFINE_TYPE(BudgiePopover, budgie_popover, GTK_TYPE_WINDOW)
@@ -43,98 +68,9 @@ static void budgie_popover_add(GtkContainer *container, GtkWidget *widget);
 static gboolean budgie_popover_button_press(GtkWidget *widget, GdkEventButton *button,
                                             gpointer udata);
 static gboolean budgie_popover_key_press(GtkWidget *widget, GdkEventKey *key, gpointer udata);
-
-enum { PROP_RELATIVE_TO = 1, N_PROPS };
-
-static GParamSpec *obj_properties[N_PROPS] = {
-        NULL,
-};
-
 static void budgie_popover_set_property(GObject *object, guint id, const GValue *value,
-                                        GParamSpec *spec)
-{
-        BudgiePopover *self = BUDGIE_POPOVER(object);
-
-        switch (id) {
-        case PROP_RELATIVE_TO:
-                self->relative_to = g_value_get_object(value);
-                break;
-        default:
-                G_OBJECT_WARN_INVALID_PROPERTY_ID(object, id, spec);
-                break;
-        }
-}
-
-static void budgie_popover_get_property(GObject *object, guint id, GValue *value, GParamSpec *spec)
-{
-        BudgiePopover *self = BUDGIE_POPOVER(object);
-
-        switch (id) {
-        case PROP_RELATIVE_TO:
-                g_value_set_object(value, self->relative_to);
-                break;
-        default:
-                G_OBJECT_WARN_INVALID_PROPERTY_ID(object, id, spec);
-                break;
-        }
-}
-/**
- * Used for storing BudgieTail calculations
- */
-typedef struct BudgieTail {
-        double start_x;
-        double start_y;
-        double end_x;
-        double end_y;
-        double x;
-        double y;
-} BudgieTail;
-
-/**
- * We'll likely take this from a style property in future, but for now it
- * is both the width and height of a tail
- */
-#define TAIL_DIMENSION 20
-#define SHADOW_DIMENSION 4
-
-/**
- * budgie_popover_new:
- * @relative_to: The widget to show the popover for
-
- * Construct a new BudgiePopover object
- *
- * Returns: (transfer full): A newly created #GSettings for this applet instance
- */
-GtkWidget *budgie_popover_new(GtkWidget *relative_to)
-{
-        /* Blame clang-format for weird wrapping */
-        return g_object_new(BUDGIE_TYPE_POPOVER,
-                            "relative-to",
-                            relative_to,
-                            "decorated",
-                            FALSE,
-                            "deletable",
-                            FALSE,
-                            "focus-on-map",
-                            TRUE,
-                            "gravity",
-                            GDK_GRAVITY_NORTH_WEST,
-                            "modal",
-                            FALSE,
-                            "resizable",
-                            FALSE,
-                            "skip-pager-hint",
-                            TRUE,
-                            "skip-taskbar-hint",
-                            TRUE,
-                            "type",
-                            GTK_WINDOW_POPUP,
-                            "type-hint",
-                            GDK_WINDOW_TYPE_HINT_POPUP_MENU,
-                            "window-position",
-                            GTK_WIN_POS_CENTER,
-                            NULL);
-}
+                                        GParamSpec *spec);
+static void budgie_popover_get_property(GObject *object, guint id, GValue *value, GParamSpec *spec);
 
 /**
  * budgie_popover_dispose:
@@ -237,114 +173,6 @@ static void budgie_popover_init(BudgiePopover *self)
                      "margin-end",
                      5,
                      NULL);
-}
-
-static void budgie_popover_compute_tail(GtkWidget *widget, BudgieTail *tail)
-{
-        GtkAllocation alloc = { 0 };
-        BudgieTail t = { 0 };
-
-        if (!tail) {
-                return;
-        }
-
-        gtk_widget_get_allocation(widget, &alloc);
-
-        /* Right now just assume we're centered and at the bottom. */
-        t.x = (alloc.x + alloc.width / 2) - SHADOW_DIMENSION;
-        t.y = (alloc.y + alloc.height) - SHADOW_DIMENSION;
-
-        t.start_x = t.x - (TAIL_DIMENSION / 2);
-        t.end_x = t.start_x + TAIL_DIMENSION;
-
-        t.start_y = t.y - (TAIL_DIMENSION / 2);
-        t.end_y = t.start_y;
-        *tail = t;
-}
-
-/**
- * Draw the actual tail itself.
- */
-static void budgie_popover_draw_tail(BudgieTail *tail, cairo_t *cr)
-{
-        /* Draw "through" the previous box-shadow */
-        cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
-        cairo_set_antialias(cr, CAIRO_ANTIALIAS_SUBPIXEL);
-        cairo_set_line_cap(cr, CAIRO_LINE_CAP_BUTT);
-        cairo_set_line_join(cr, CAIRO_LINE_JOIN_MITER);
-        cairo_move_to(cr, tail->start_x, tail->start_y);
-        cairo_line_to(cr, tail->x, tail->y);
-        cairo_line_to(cr, tail->end_x, tail->end_y);
-        cairo_stroke_preserve(cr);
-}
-
-/**
- * Override the drawing to provide a tail region
- */
-static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
-{
-        GtkStyleContext *style = NULL;
-        GtkAllocation alloc = { 0 };
-        GtkWidget *child = NULL;
-        BudgieTail tail = { 0 };
-        gint original_height;
-        GdkRGBA border_color = { 0 };
-        GtkBorder border = { 0 };
-        GtkStateFlags fl;
-
-        budgie_popover_compute_tail(widget, &tail);
-        fl = GTK_STATE_FLAG_VISITED;
-
-        style = gtk_widget_get_style_context(widget);
-        gtk_widget_get_allocation(widget, &alloc);
-
-        /* Warning: Using deprecated API */
-        gtk_style_context_get_border_color(style, fl, &border_color);
-        gtk_style_context_get_border(style, fl, &border);
-
-        /* Set up the offset */
-        original_height = alloc.height;
-        alloc.height -= (alloc.height - (int)tail.start_y) - SHADOW_DIMENSION;
-
-        /* Fix overhang */
-        // alloc.height += 1;
-        gtk_style_context_set_state(style, GTK_STATE_FLAG_BACKDROP);
-        gtk_render_background(style,
-                              cr,
-                              alloc.x + SHADOW_DIMENSION,
-                              alloc.y + SHADOW_DIMENSION,
-                              alloc.width - SHADOW_DIMENSION * 2,
-                              alloc.height - SHADOW_DIMENSION * 2);
-        gtk_render_frame_gap(style,
-                             cr,
-                             alloc.x + SHADOW_DIMENSION,
-                             alloc.y + SHADOW_DIMENSION,
-                             alloc.width - SHADOW_DIMENSION * 2,
-                             alloc.height - SHADOW_DIMENSION * 2,
-                             GTK_POS_BOTTOM,
-                             tail.start_x - SHADOW_DIMENSION,
-                             tail.end_x - SHADOW_DIMENSION);
-        gtk_style_context_set_state(style, fl);
-
-        child = gtk_bin_get_child(GTK_BIN(widget));
-        if (child) {
-                gtk_container_propagate_draw(GTK_CONTAINER(widget), child, cr);
-        }
-
-        cairo_set_line_width(cr, 1.3);
-        cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
-        cairo_set_line_join(cr, CAIRO_LINE_JOIN_BEVEL);
-        cairo_set_source_rgba(cr,
-                              border_color.red,
-                              border_color.green,
-                              border_color.blue,
-                              border_color.alpha);
-        budgie_popover_draw_tail(&tail, cr);
-        cairo_clip(cr);
-        cairo_move_to(cr, 0, 0);
-        gtk_render_background(style, cr, alloc.x, alloc.y, alloc.width, original_height);
-
-        return GDK_EVENT_STOP;
 }
 
 static void budgie_popover_map(GtkWidget *widget)
@@ -473,6 +301,114 @@ static void budgie_popover_grab_notify(GtkWidget *widget, gboolean was_grabbed,
         budgie_popover_grab(self);
 }
 
+static void budgie_popover_compute_tail(GtkWidget *widget, BudgieTail *tail)
+{
+        GtkAllocation alloc = { 0 };
+        BudgieTail t = { 0 };
+
+        if (!tail) {
+                return;
+        }
+
+        gtk_widget_get_allocation(widget, &alloc);
+
+        /* Right now just assume we're centered and at the bottom. */
+        t.x = (alloc.x + alloc.width / 2) - SHADOW_DIMENSION;
+        t.y = (alloc.y + alloc.height) - SHADOW_DIMENSION;
+
+        t.start_x = t.x - (TAIL_DIMENSION / 2);
+        t.end_x = t.start_x + TAIL_DIMENSION;
+
+        t.start_y = t.y - (TAIL_DIMENSION / 2);
+        t.end_y = t.start_y;
+        *tail = t;
+}
+
+/**
+ * Draw the actual tail itself.
+ */
+static void budgie_popover_draw_tail(BudgieTail *tail, cairo_t *cr)
+{
+        /* Draw "through" the previous box-shadow */
+        cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+        cairo_set_antialias(cr, CAIRO_ANTIALIAS_SUBPIXEL);
+        cairo_set_line_cap(cr, CAIRO_LINE_CAP_BUTT);
+        cairo_set_line_join(cr, CAIRO_LINE_JOIN_MITER);
+        cairo_move_to(cr, tail->start_x, tail->start_y);
+        cairo_line_to(cr, tail->x, tail->y);
+        cairo_line_to(cr, tail->end_x, tail->end_y);
+        cairo_stroke_preserve(cr);
+}
+
+/**
+ * Override the drawing to provide a tail region
+ */
+static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
+{
+        GtkStyleContext *style = NULL;
+        GtkAllocation alloc = { 0 };
+        GtkWidget *child = NULL;
+        BudgieTail tail = { 0 };
+        gint original_height;
+        GdkRGBA border_color = { 0 };
+        GtkBorder border = { 0 };
+        GtkStateFlags fl;
+
+        budgie_popover_compute_tail(widget, &tail);
+        fl = GTK_STATE_FLAG_VISITED;
+
+        style = gtk_widget_get_style_context(widget);
+        gtk_widget_get_allocation(widget, &alloc);
+
+        /* Warning: Using deprecated API */
+        gtk_style_context_get_border_color(style, fl, &border_color);
+        gtk_style_context_get_border(style, fl, &border);
+
+        /* Set up the offset */
+        original_height = alloc.height;
+        alloc.height -= (alloc.height - (int)tail.start_y) - SHADOW_DIMENSION;
+
+        /* Fix overhang */
+        // alloc.height += 1;
+        gtk_style_context_set_state(style, GTK_STATE_FLAG_BACKDROP);
+        gtk_render_background(style,
+                              cr,
+                              alloc.x + SHADOW_DIMENSION,
+                              alloc.y + SHADOW_DIMENSION,
+                              alloc.width - SHADOW_DIMENSION * 2,
+                              alloc.height - SHADOW_DIMENSION * 2);
+        gtk_render_frame_gap(style,
+                             cr,
+                             alloc.x + SHADOW_DIMENSION,
+                             alloc.y + SHADOW_DIMENSION,
+                             alloc.width - SHADOW_DIMENSION * 2,
+                             alloc.height - SHADOW_DIMENSION * 2,
+                             GTK_POS_BOTTOM,
+                             tail.start_x - SHADOW_DIMENSION,
+                             tail.end_x - SHADOW_DIMENSION);
+        gtk_style_context_set_state(style, fl);
+
+        child = gtk_bin_get_child(GTK_BIN(widget));
+        if (child) {
+                gtk_container_propagate_draw(GTK_CONTAINER(widget), child, cr);
+        }
+
+        cairo_set_line_width(cr, 1.3);
+        cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
+        cairo_set_line_join(cr, CAIRO_LINE_JOIN_BEVEL);
+        cairo_set_source_rgba(cr,
+                              border_color.red,
+                              border_color.green,
+                              border_color.blue,
+                              border_color.alpha);
+        budgie_popover_draw_tail(&tail, cr);
+        cairo_clip(cr);
+        cairo_move_to(cr, 0, 0);
+        gtk_render_background(style, cr, alloc.x, alloc.y, alloc.width, original_height);
+
+        return GDK_EVENT_STOP;
+}
+
 static void budgie_popover_add(GtkContainer *container, GtkWidget *widget)
 {
         BudgiePopover *self = NULL;
@@ -523,6 +459,74 @@ static gboolean budgie_popover_key_press(GtkWidget *widget, GdkEventKey *key,
                 return GDK_EVENT_STOP;
         }
         return GDK_EVENT_PROPAGATE;
+}
+
+static void budgie_popover_set_property(GObject *object, guint id, const GValue *value,
+                                        GParamSpec *spec)
+{
+        BudgiePopover *self = BUDGIE_POPOVER(object);
+
+        switch (id) {
+        case PROP_RELATIVE_TO:
+                self->relative_to = g_value_get_object(value);
+                break;
+        default:
+                G_OBJECT_WARN_INVALID_PROPERTY_ID(object, id, spec);
+                break;
+        }
+}
+
+static void budgie_popover_get_property(GObject *object, guint id, GValue *value, GParamSpec *spec)
+{
+        BudgiePopover *self = BUDGIE_POPOVER(object);
+
+        switch (id) {
+        case PROP_RELATIVE_TO:
+                g_value_set_object(value, self->relative_to);
+                break;
+        default:
+                G_OBJECT_WARN_INVALID_PROPERTY_ID(object, id, spec);
+                break;
+        }
+}
+
+/**
+ * budgie_popover_new:
+ * @relative_to: The widget to show the popover for
+
+ * Construct a new BudgiePopover object
+ *
+ * Returns: (transfer full): A newly created #GSettings for this applet instance
+ */
+GtkWidget *budgie_popover_new(GtkWidget *relative_to)
+{
+        /* Blame clang-format for weird wrapping */
+        return g_object_new(BUDGIE_TYPE_POPOVER,
+                            "relative-to",
+                            relative_to,
+                            "decorated",
+                            FALSE,
+                            "deletable",
+                            FALSE,
+                            "focus-on-map",
+                            TRUE,
+                            "gravity",
+                            GDK_GRAVITY_NORTH_WEST,
+                            "modal",
+                            FALSE,
+                            "resizable",
+                            FALSE,
+                            "skip-pager-hint",
+                            TRUE,
+                            "skip-taskbar-hint",
+                            TRUE,
+                            "type",
+                            GTK_WINDOW_POPUP,
+                            "type-hint",
+                            GDK_WINDOW_TYPE_HINT_POPUP_MENU,
+                            "window-position",
+                            GTK_WIN_POS_CENTER,
+                            NULL);
 }
 
 /*
