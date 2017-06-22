@@ -364,12 +364,12 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
         parent_window = gtk_widget_get_toplevel(self->priv->relative_to);
         if (parent_window) {
                 GtkStyleContext *context = gtk_widget_get_style_context(parent_window);
-                if (gtk_style_context_has_class(context, "bottom")) {
+                if (gtk_style_context_has_class(context, "top")) {
                         tail_position = GTK_POS_TOP;
                 } else if (gtk_style_context_has_class(context, "left")) {
-                        tail_position = GTK_POS_RIGHT;
-                } else if (gtk_style_context_has_class(context, "right")) {
                         tail_position = GTK_POS_LEFT;
+                } else if (gtk_style_context_has_class(context, "right")) {
+                        tail_position = GTK_POS_RIGHT;
                 } else {
                         tail_position = GTK_POS_BOTTOM;
                 }
