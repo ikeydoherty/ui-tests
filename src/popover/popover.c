@@ -33,8 +33,8 @@ struct _BudgiePopover {
 G_DEFINE_TYPE(BudgiePopover, budgie_popover, GTK_TYPE_WINDOW)
 
 static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr);
-static gboolean budgie_popover_map(GtkWidget *widget, gpointer udata);
-static gboolean budgie_popover_unmap(GtkWidget *widget, gpointer udata);
+static void budgie_popover_map(GtkWidget *widget);
+static void budgie_popover_unmap(GtkWidget *widget);
 static void budgie_popover_grab_notify(GtkWidget *widget, gboolean was_grabbed, gpointer udata);
 static gboolean budgie_popover_grab_broken(GtkWidget *widget, GdkEvent *event, gpointer udata);
 static void budgie_popover_grab(BudgiePopover *self);
@@ -165,6 +165,8 @@ static void budgie_popover_class_init(BudgiePopoverClass *klazz)
 
         /* widget vtable hookup */
         wid_class->draw = budgie_popover_draw;
+        wid_class->map = budgie_popover_map;
+        wid_class->unmap = budgie_popover_unmap;
 
         /* container vtable */
         cont_class->add = budgie_popover_add;
@@ -214,8 +216,6 @@ static void budgie_popover_init(BudgiePopover *self)
 
         /* Setup window specific bits */
         gtk_window_set_position(win, GTK_WIN_POS_CENTER);
-        g_signal_connect(win, "map-event", G_CALLBACK(budgie_popover_map), NULL);
-        g_signal_connect(win, "unmap-event", G_CALLBACK(budgie_popover_unmap), NULL);
         g_signal_connect(win, "grab-notify", G_CALLBACK(budgie_popover_grab_notify), NULL);
         g_signal_connect(win, "grab-broken-event", G_CALLBACK(budgie_popover_grab_broken), NULL);
         g_signal_connect(win, "button-press-event", G_CALLBACK(budgie_popover_button_press), NULL);
@@ -364,9 +364,11 @@ static void budgie_popover_load_css()
                                                   GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 }
 
-static gboolean budgie_popover_map(GtkWidget *widget, __budgie_unused__ gpointer udata)
+static void budgie_popover_map(GtkWidget *widget)
 {
         GdkWindow *window = NULL;
+
+        /* TODO: Work out our placement here */
 
         /* Forcibly request focus */
         window = gtk_widget_get_window(widget);
@@ -378,13 +380,13 @@ static gboolean budgie_popover_map(GtkWidget *widget, __budgie_unused__ gpointer
         budgie_popover_ungrab(BUDGIE_POPOVER(widget));
         budgie_popover_grab(BUDGIE_POPOVER(widget));
 
-        return GDK_EVENT_PROPAGATE;
+        GTK_WIDGET_CLASS(budgie_popover_parent_class)->map(widget);
 }
 
-static gboolean budgie_popover_unmap(GtkWidget *widget, __budgie_unused__ gpointer udata)
+static void budgie_popover_unmap(GtkWidget *widget)
 {
         budgie_popover_ungrab(BUDGIE_POPOVER(widget));
-        return GDK_EVENT_PROPAGATE;
+        GTK_WIDGET_CLASS(budgie_popover_parent_class)->unmap(widget);
 }
 
 /**
