@@ -374,7 +374,7 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
                 }
         }
 
-        tail_position = GTK_POS_LEFT;
+        tail_position = GTK_POS_BOTTOM;
 
         /* Now work out where we live on screen */
         switch (tail_position) {
@@ -456,21 +456,30 @@ static void budgie_popover_compute_tail(BudgiePopover *self)
 
         gtk_widget_get_allocation(GTK_WIDGET(self), &alloc);
 
+        t.position = self->priv->tail.position;
+
         switch (self->priv->tail.position) {
         case GTK_POS_LEFT:
-                t.x = alloc.x + SHADOW_DIMENSION;
+                t.x = alloc.x;
                 t.y = alloc.y + (alloc.height / 2);
                 t.start_y = t.y - TAIL_HEIGHT;
                 t.end_y = t.y + TAIL_HEIGHT;
                 t.start_x = t.end_x = t.x + TAIL_HEIGHT;
                 break;
+        case GTK_POS_RIGHT:
+                t.x = alloc.width;
+                t.y = alloc.y + (alloc.height / 2);
+                t.start_y = t.y - TAIL_HEIGHT;
+                t.end_y = t.y + TAIL_HEIGHT;
+                t.start_x = t.end_x = t.x - TAIL_HEIGHT;
+                break;
         case GTK_POS_BOTTOM:
         default:
-                t.x = (alloc.x + alloc.width / 2) - SHADOW_DIMENSION;
-                t.y = (alloc.y + alloc.height) - SHADOW_DIMENSION;
+                t.x = (alloc.x + alloc.width / 2);
+                t.y = (alloc.y + alloc.height);
                 t.start_x = t.x - TAIL_HEIGHT;
                 t.end_x = t.start_x + TAIL_DIMENSION;
-                t.start_y = t.y - TAIL_HEIGHT;
+                t.start_y = t.y - TAIL_HEIGHT - SHADOW_DIMENSION;
                 t.end_y = t.start_y;
                 break;
         }
@@ -525,14 +534,34 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
 
         /* Set up the offset */
 
+        gdouble gap_start = 0, gap_end = 0;
+
+        // body_alloc.x += SHADOW_DIMENSION;
+        // body_alloc.y += SHADOW_DIMENSION;
+        // body_alloc.width -= SHADOW_DIMENSION * 2;
+        // body_alloc.height -= SHADOW_DIMENSION * 2;
+
         switch (self->priv->tail.position) {
         case GTK_POS_LEFT:
                 body_alloc.width -= TAIL_HEIGHT;
                 body_alloc.x += TAIL_HEIGHT;
+                gap_start = tail->start_y;
+                gap_start = tail->end_y;
+                break;
+        case GTK_POS_RIGHT:
+                body_alloc.width -= TAIL_DIMENSION * 2;
+                gap_start = tail->start_y;
+                gap_start = tail->end_y;
                 break;
         case GTK_POS_BOTTOM:
         default:
-                body_alloc.height -= (alloc.height - (int)tail->start_y) - SHADOW_DIMENSION;
+                body_alloc.height -= TAIL_HEIGHT;
+                gap_start = tail->start_x;
+                gap_start = tail->end_x;
+                body_alloc.x += SHADOW_DIMENSION;
+                body_alloc.width -= SHADOW_DIMENSION * 2;
+                body_alloc.y += SHADOW_DIMENSION;
+                body_alloc.height -= SHADOW_DIMENSION * 2;
                 break;
         }
 
@@ -541,19 +570,21 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
         gtk_style_context_set_state(style, GTK_STATE_FLAG_BACKDROP);
         gtk_render_background(style,
                               cr,
-                              body_alloc.x + SHADOW_DIMENSION,
-                              body_alloc.y + SHADOW_DIMENSION,
-                              body_alloc.width - SHADOW_DIMENSION * 2,
-                              body_alloc.height - SHADOW_DIMENSION * 2);
+                              body_alloc.x,
+                              body_alloc.y,
+                              body_alloc.width,
+                              body_alloc.height);
+
+        /*
         gtk_render_frame_gap(style,
                              cr,
-                             body_alloc.x + SHADOW_DIMENSION,
-                             body_alloc.y + SHADOW_DIMENSION,
-                             body_alloc.width - SHADOW_DIMENSION * 2,
-                             body_alloc.height - SHADOW_DIMENSION * 2,
+                             body_alloc.x,
+                             body_alloc.y,
+                             body_alloc.width,
+                             body_alloc.height,
                              self->priv->tail.position,
-                             tail->start_x - SHADOW_DIMENSION,
-                             tail->end_x - SHADOW_DIMENSION);
+                             gap_start,
+                             gap_end);*/
         gtk_style_context_set_state(style, fl);
 
         child = gtk_bin_get_child(GTK_BIN(widget));
