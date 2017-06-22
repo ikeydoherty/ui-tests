@@ -140,7 +140,8 @@ void budgie_popover_manager_show_popover(BudgiePopover *self, GtkWidget *parent_
  * Hook up the various signals we need to manage this popover correctly
  */
 static void budgie_popover_manager_link_signals(BudgiePopoverManager *self,
-                                                GtkWidget *parent_widget, BudgiePopover *popover)
+                                                __budgie_unused__ GtkWidget *parent_widget,
+                                                BudgiePopover *popover)
 {
         /* Need enter-notify to check if we entered a parent widget */
         g_signal_connect_swapped(popover,
@@ -162,7 +163,8 @@ static void budgie_popover_manager_link_signals(BudgiePopoverManager *self,
  * Disconnect any prior signals for this popover so we stop receiving events for it
  */
 static void budgie_popover_manager_unlink_signals(BudgiePopoverManager *self,
-                                                  GtkWidget *parent_widget, BudgiePopover *popover)
+                                                  __budgie_unused__ GtkWidget *parent_widget,
+                                                  BudgiePopover *popover)
 {
         g_signal_handlers_disconnect_by_data(popover, self);
 }
@@ -204,7 +206,7 @@ static gboolean budgie_popover_manager_enter_notify(BudgiePopoverManager *self,
 
         /* Don't show the same popover again. :P */
         target_popover = g_hash_table_lookup(self->popovers, target_activatable);
-        if (target_popover == self->active_popover) {
+        if ((BudgiePopover *)target_popover == self->active_popover) {
                 return GDK_EVENT_PROPAGATE;
         }
 
@@ -283,7 +285,8 @@ static GtkWidget *budgie_popover_manager_get_parent_at_coords(BudgiePopoverManag
  * Handle the BudgiePopover becoming visible on screen, updating our knowledge
  * of who the currently active popover is
  */
-static gboolean budgie_popover_manager_popover_mapped(BudgiePopover *popover, GdkEvent *event,
+static gboolean budgie_popover_manager_popover_mapped(BudgiePopover *popover,
+                                                      __budgie_unused__ GdkEvent *event,
                                                       BudgiePopoverManager *self)
 {
         self->active_popover = popover;
@@ -294,7 +297,8 @@ static gboolean budgie_popover_manager_popover_mapped(BudgiePopover *popover, Gd
  * Handle the BudgiePopover becoming invisible on screen, updating our knowledge
  * of who the currently active popover is
  */
-static gboolean budgie_popover_manager_popover_unmapped(BudgiePopover *popover, GdkEvent *event,
+static gboolean budgie_popover_manager_popover_unmapped(BudgiePopover *popover,
+                                                        __budgie_unused__ GdkEvent *event,
                                                         BudgiePopoverManager *self)
 {
         if (popover == self->active_popover) {

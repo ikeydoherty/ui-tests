@@ -17,7 +17,7 @@ BUDGIE_BEGIN_PEDANTIC
 #include "popover.h"
 BUDGIE_END_PEDANTIC
 
-static void budgie_popover_demo_load_css()
+static void budgie_popover_demo_load_css(void)
 {
         GdkScreen *screen = NULL;
         GtkCssProvider *css = NULL;
@@ -37,8 +37,8 @@ static void button_click_cb(__budgie_unused__ GtkWidget *pop, gpointer udata)
         gtk_widget_hide(popover);
 }
 
-static gboolean show_popover_cb(__budgie_unused__ GtkWidget *window, GdkEventButton *button,
-                                gpointer udata)
+static gboolean show_popover_cb(__budgie_unused__ GtkWidget *window,
+                                __budgie_unused__ GdkEventButton *button, gpointer udata)
 {
         GtkWidget *popover = udata;
 
