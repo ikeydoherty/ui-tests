@@ -1,7 +1,7 @@
 ui-tests
 --------
 
-Testing various ideas for Budgie 11 in a this-doesn't-need-to-work fashion.
+Testing various ideas for Budgie 10 in a this-doesn't-need-to-work fashion.
 
 
 **License**
