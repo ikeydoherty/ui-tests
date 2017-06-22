@@ -380,10 +380,12 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
         case GTK_POS_BOTTOM:
                 /* We need to appear above the widget */
                 y = widget_rect.y - our_height;
+                x = (widget_rect.x + (widget_rect.width / 2)) - (our_width / 2);
                 break;
         case GTK_POS_TOP:
                 /* We need to appear below the widget */
                 y = widget_rect.y + widget_rect.height + (TAIL_DIMENSION / 2);
+                x = (widget_rect.x + (widget_rect.width / 2)) - (our_width / 2);
                 break;
         default:
                 break;
