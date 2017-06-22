@@ -144,6 +144,11 @@ static void budgie_popover_init(BudgiePopover *self)
         style = gtk_widget_get_style_context(GTK_WIDGET(self));
         gtk_style_context_add_class(style, "budgie-popover");
 
+        /* Allow budgie-wm to know what we are */
+        G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+        gtk_window_set_wmclass(GTK_WINDOW(self), "budgie-popover", "budgie-popover");
+        G_GNUC_END_IGNORE_DEPRECATIONS
+
         self->add_area = gtk_event_box_new();
         gtk_container_add(GTK_CONTAINER(self), self->add_area);
         gtk_widget_show_all(self->add_area);
