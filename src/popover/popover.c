@@ -378,7 +378,7 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
                 }
         }
 
-        tail_position = GTK_POS_BOTTOM;
+        tail_position = GTK_POS_TOP;
 
         /* Now work out where we live on screen */
         switch (tail_position) {
