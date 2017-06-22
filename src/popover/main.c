@@ -35,12 +35,12 @@ static gboolean show_popover_cb(__budgie_unused__ GtkWidget *window, GdkEventBut
         return GDK_EVENT_STOP;
 }
 
-static GtkWidget *sudo_make_me_a_popover(const gchar *le_label)
+static GtkWidget *sudo_make_me_a_popover(GtkWidget *relative_to, const gchar *le_label)
 {
         GtkWidget *popover = NULL;
         GtkWidget *entry, *button, *layout = NULL;
 
-        popover = budgie_popover_new();
+        popover = budgie_popover_new(relative_to);
 
         layout = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
         gtk_container_set_border_width(GTK_CONTAINER(layout), 5);
@@ -73,9 +73,6 @@ int main(int argc, char **argv)
         manager = budgie_popover_manager_new();
         g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", FALSE, NULL);
 
-        /* Create popover */
-        popover = sudo_make_me_a_popover("Popover #1");
-
         main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
         gtk_widget_set_size_request(main_window, 400, 400);
 
@@ -85,14 +82,16 @@ int main(int argc, char **argv)
 
         /* Hook up the popover to the actionable button */
         button = gtk_toggle_button_new_with_label("Click me #1");
+        popover = sudo_make_me_a_popover(button, "Popover #1");
+
         g_object_bind_property(popover, "visible", button, "active", G_BINDING_DEFAULT);
         budgie_popover_manager_register_popover(manager, button, BUDGIE_POPOVER(popover));
 
         gtk_box_pack_start(GTK_BOX(layout), button, FALSE, FALSE, 0);
         g_signal_connect(button, "button-press-event", G_CALLBACK(show_popover_cb), popover);
 
-        popover = sudo_make_me_a_popover("Popover #2");
         button = gtk_toggle_button_new_with_label("Click me #2");
+        popover = sudo_make_me_a_popover(button, "Popover #2");
         g_object_bind_property(popover, "visible", button, "active", G_BINDING_DEFAULT);
         gtk_box_pack_start(GTK_BOX(layout), button, FALSE, FALSE, 0);
 

@@ -27,6 +27,7 @@ struct _BudgiePopover {
 
         gboolean grabbed;
         GtkWidget *add_area;
+        GtkWidget *relative_to;
 };
 
 G_DEFINE_TYPE(BudgiePopover, budgie_popover, GTK_TYPE_WINDOW)
@@ -44,6 +45,40 @@ static gboolean budgie_popover_button_press(GtkWidget *widget, GdkEventButton *b
                                             gpointer udata);
 static gboolean budgie_popover_key_press(GtkWidget *widget, GdkEventKey *key, gpointer udata);
 
+enum { PROP_RELATIVE_TO = 1, N_PROPS };
+
+static GParamSpec *obj_properties[N_PROPS] = {
+        NULL,
+};
+
+static void budgie_popover_set_property(GObject *object, guint id, const GValue *value,
+                                        GParamSpec *spec)
+{
+        BudgiePopover *self = BUDGIE_POPOVER(object);
+
+        switch (id) {
+        case PROP_RELATIVE_TO:
+                self->relative_to = g_value_get_object(value);
+                break;
+        default:
+                G_OBJECT_WARN_INVALID_PROPERTY_ID(object, id, spec);
+                break;
+        }
+}
+
+static void budgie_popover_get_property(GObject *object, guint id, GValue *value, GParamSpec *spec)
+{
+        BudgiePopover *self = BUDGIE_POPOVER(object);
+
+        switch (id) {
+        case PROP_RELATIVE_TO:
+                g_value_set_object(value, self->relative_to);
+                break;
+        default:
+                G_OBJECT_WARN_INVALID_PROPERTY_ID(object, id, spec);
+                break;
+        }
+}
 /**
  * Used for storing BudgieTail calculations
  */
@@ -65,13 +100,18 @@ typedef struct BudgieTail {
 
 /**
  * budgie_popover_new:
- *
+ * @relative_to: The widget to show the popover for
+
  * Construct a new BudgiePopover object
+ *
+ * Returns: (transfer full): A newly created #GSettings for this applet instance
  */
-GtkWidget *budgie_popover_new()
+GtkWidget *budgie_popover_new(GtkWidget *relative_to)
 {
         /* Blame clang-format for weird wrapping */
         return g_object_new(BUDGIE_TYPE_POPOVER,
+                            "relative-to",
+                            relative_to,
                             "decorated",
                             FALSE,
                             "deletable",
@@ -120,11 +160,27 @@ static void budgie_popover_class_init(BudgiePopoverClass *klazz)
 
         /* gobject vtable hookup */
         obj_class->dispose = budgie_popover_dispose;
+        obj_class->set_property = budgie_popover_set_property;
+        obj_class->get_property = budgie_popover_get_property;
 
         /* widget vtable hookup */
         wid_class->draw = budgie_popover_draw;
 
+        /* container vtable */
         cont_class->add = budgie_popover_add;
+
+        /*
+         * BudgiePopover:relative-to
+         *
+         * Determines the GtkWidget that we'll appear next to
+         */
+        obj_properties[PROP_RELATIVE_TO] = g_param_spec_object("relative-to",
+                                                               "Relative widget",
+                                                               "Set the relative widget",
+                                                               GTK_TYPE_WIDGET,
+                                                               G_PARAM_READWRITE);
+
+        g_object_class_install_properties(obj_class, N_PROPS, obj_properties);
 }
 
 /**
