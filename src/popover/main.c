@@ -90,7 +90,8 @@ int main(int argc, char **argv)
         g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", FALSE, NULL);
 
         main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-        gtk_widget_set_size_request(main_window, 400, 400);
+        gtk_window_set_title(GTK_WINDOW(main_window), "Popovers..");
+        gtk_window_set_default_size(main_window, -1, -1);
 
         layout = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
         gtk_widget_set_valign(layout, GTK_ALIGN_CENTER);
