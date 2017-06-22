@@ -491,7 +491,7 @@ static void budgie_popover_get_property(GObject *object, guint id, GValue *value
 
  * Construct a new BudgiePopover object
  *
- * Returns: (transfer full): A newly created #GSettings for this applet instance
+ * Returns: (transfer full): A newly created #BudgiePopover
  */
 GtkWidget *budgie_popover_new(GtkWidget *relative_to)
 {
