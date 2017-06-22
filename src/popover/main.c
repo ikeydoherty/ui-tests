@@ -43,6 +43,7 @@ static GtkWidget *sudo_make_me_a_popover(const gchar *le_label)
         popover = budgie_popover_new();
 
         layout = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+        gtk_container_set_border_width(GTK_CONTAINER(layout), 5);
         gtk_container_add(GTK_CONTAINER(popover), layout);
 
         /* Add content */
