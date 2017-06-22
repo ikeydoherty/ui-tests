@@ -36,6 +36,8 @@ typedef struct BudgieTail {
         double end_y;
         double x;
         double y;
+        double x_offset;
+        double y_offset;
         GtkPositionType position;
 } BudgieTail;
 
@@ -464,6 +466,7 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
         for (guint i = 0; i < G_N_ELEMENTS(position_classes); i++) {
                 gtk_style_context_remove_class(style, position_classes[i]);
         }
+
         gtk_style_context_add_class(style, style_class);
 }
 
@@ -524,9 +527,9 @@ static void budgie_popover_draw_tail(BudgiePopover *self, cairo_t *cr)
         cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
         cairo_set_line_cap(cr, CAIRO_LINE_CAP_BUTT);
         cairo_set_line_join(cr, CAIRO_LINE_JOIN_MITER);
-        cairo_move_to(cr, tail->start_x, tail->start_y);
-        cairo_line_to(cr, tail->x, tail->y);
-        cairo_line_to(cr, tail->end_x, tail->end_y);
+        cairo_move_to(cr, tail->start_x + tail->x_offset, tail->start_y + tail->y_offset);
+        cairo_line_to(cr, tail->x + tail->x_offset, tail->y + tail->y_offset);
+        cairo_line_to(cr, tail->end_x + tail->x_offset, tail->end_y + tail->y_offset);
         cairo_stroke_preserve(cr);
 }
 
@@ -569,27 +572,27 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
                 body_alloc.height -= SHADOW_DIMENSION;
                 body_alloc.width -= TAIL_HEIGHT;
                 body_alloc.x += TAIL_HEIGHT;
-                gap_start = tail->start_y;
-                gap_end = tail->end_y;
+                gap_start = tail->start_y + tail->y_offset;
+                gap_end = tail->end_y + tail->y_offset;
                 break;
         case GTK_POS_RIGHT:
                 body_alloc.height -= SHADOW_DIMENSION;
                 body_alloc.width -= TAIL_HEIGHT;
-                gap_start = tail->start_y;
-                gap_end = tail->end_y;
+                gap_start = tail->start_y + tail->y_offset;
+                gap_end = tail->end_y + tail->y_offset;
                 break;
         case GTK_POS_TOP:
                 body_alloc.height -= SHADOW_DIMENSION * 2;
                 body_alloc.y += TAIL_HEIGHT;
                 body_alloc.y -= SHADOW_DIMENSION;
-                gap_start = tail->start_x;
-                gap_end = tail->end_x;
+                gap_start = tail->start_x + tail->x_offset;
+                gap_end = tail->end_x + tail->x_offset;
                 break;
         case GTK_POS_BOTTOM:
         default:
                 body_alloc.height -= TAIL_HEIGHT;
-                gap_start = tail->start_x;
-                gap_end = tail->end_x;
+                gap_start = tail->start_x + tail->x_offset;
+                gap_end = tail->end_x + tail->x_offset;
                 break;
         }
 
