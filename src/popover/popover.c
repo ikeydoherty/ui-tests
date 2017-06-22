@@ -39,7 +39,6 @@ static void budgie_popover_grab_notify(GtkWidget *widget, gboolean was_grabbed, 
 static gboolean budgie_popover_grab_broken(GtkWidget *widget, GdkEvent *event, gpointer udata);
 static void budgie_popover_grab(BudgiePopover *self);
 static void budgie_popover_ungrab(BudgiePopover *self);
-static void budgie_popover_load_css(void);
 static void budgie_popover_add(GtkContainer *container, GtkWidget *widget);
 static gboolean budgie_popover_button_press(GtkWidget *widget, GdkEventButton *button,
                                             gpointer udata);
@@ -211,9 +210,6 @@ static void budgie_popover_init(BudgiePopover *self)
         gtk_container_add(GTK_CONTAINER(self), self->add_area);
         gtk_widget_show_all(self->add_area);
 
-        /* Hacky demo */
-        budgie_popover_load_css();
-
         /* Setup window specific bits */
         gtk_window_set_position(win, GTK_WIN_POS_CENTER);
         g_signal_connect(win, "grab-notify", G_CALLBACK(budgie_popover_grab_notify), NULL);
@@ -349,19 +345,6 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
         gtk_render_background(style, cr, alloc.x, alloc.y, alloc.width, original_height);
 
         return GDK_EVENT_STOP;
-}
-
-static void budgie_popover_load_css()
-{
-        GdkScreen *screen = NULL;
-        GtkCssProvider *css = NULL;
-
-        screen = gdk_screen_get_default();
-        css = gtk_css_provider_new();
-        gtk_css_provider_load_from_path(css, "src/popover/styling.css", NULL);
-        gtk_style_context_add_provider_for_screen(screen,
-                                                  GTK_STYLE_PROVIDER(css),
-                                                  GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 }
 
 static void budgie_popover_map(GtkWidget *widget)

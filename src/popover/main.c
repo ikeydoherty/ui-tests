@@ -17,6 +17,19 @@ BUDGIE_BEGIN_PEDANTIC
 #include "popover.h"
 BUDGIE_END_PEDANTIC
 
+static void budgie_popover_demo_load_css()
+{
+        GdkScreen *screen = NULL;
+        GtkCssProvider *css = NULL;
+
+        screen = gdk_screen_get_default();
+        css = gtk_css_provider_new();
+        gtk_css_provider_load_from_path(css, "src/popover/styling.css", NULL);
+        gtk_style_context_add_provider_for_screen(screen,
+                                                  GTK_STYLE_PROVIDER(css),
+                                                  GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+}
+
 static void button_click_cb(__budgie_unused__ GtkWidget *pop, gpointer udata)
 {
         GtkWidget *popover = udata;
@@ -66,6 +79,9 @@ int main(int argc, char **argv)
         gtk_init(&argc, &argv);
         GtkWidget *popover = NULL;
         BudgiePopoverManager *manager = NULL;
+
+        /* Hacky demo */
+        budgie_popover_demo_load_css();
 
         GtkWidget *main_window = NULL;
         GtkWidget *button, *layout = NULL;
