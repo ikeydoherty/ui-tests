@@ -25,13 +25,7 @@ BUDGIE_END_PEDANTIC
 #define TAIL_DIMENSION 20
 #define SHADOW_DIMENSION 4
 
-struct _BudgiePopoverClass {
-        GtkWindowClass parent_class;
-};
-
-struct _BudgiePopover {
-        GtkWindow parent;
-
+struct _BudgiePopoverPrivate {
         gboolean grabbed;
         GtkWidget *add_area;
         GtkWidget *relative_to;
@@ -55,7 +49,7 @@ static GParamSpec *obj_properties[N_PROPS] = {
         NULL,
 };
 
-G_DEFINE_TYPE(BudgiePopover, budgie_popover, GTK_TYPE_WINDOW)
+G_DEFINE_TYPE_WITH_PRIVATE(BudgiePopover, budgie_popover, GTK_TYPE_WINDOW)
 
 static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr);
 static void budgie_popover_map(GtkWidget *widget);
@@ -132,7 +126,8 @@ static void budgie_popover_init(BudgiePopover *self)
         GdkVisual *visual = NULL;
         GtkStyleContext *style = NULL;
 
-        self->grabbed = FALSE;
+        self->priv = budgie_popover_get_instance_private(self);
+        self->priv->grabbed = FALSE;
 
         style = gtk_widget_get_style_context(GTK_WIDGET(self));
         gtk_style_context_add_class(style, "budgie-popover");
@@ -142,9 +137,9 @@ static void budgie_popover_init(BudgiePopover *self)
         gtk_window_set_wmclass(GTK_WINDOW(self), "budgie-popover", "budgie-popover");
         G_GNUC_END_IGNORE_DEPRECATIONS
 
-        self->add_area = gtk_event_box_new();
-        gtk_container_add(GTK_CONTAINER(self), self->add_area);
-        gtk_widget_show_all(self->add_area);
+        self->priv->add_area = gtk_event_box_new();
+        gtk_container_add(GTK_CONTAINER(self), self->priv->add_area);
+        gtk_widget_show_all(self->priv->add_area);
 
         /* Setup window specific bits */
         gtk_window_set_position(win, GTK_WIN_POS_CENTER);
@@ -163,7 +158,7 @@ static void budgie_popover_init(BudgiePopover *self)
         gtk_widget_set_app_paintable(GTK_WIDGET(self), TRUE);
 
         /* TESTING: To let us develop the tail render code */
-        g_object_set(self->add_area,
+        g_object_set(self->priv->add_area,
                      "margin-top",
                      5,
                      "margin-bottom",
@@ -213,7 +208,7 @@ static void budgie_popover_grab(BudgiePopover *self)
 
         g_message("regrab");
 
-        if (self->grabbed) {
+        if (self->priv->grabbed) {
                 return;
         }
 
@@ -231,7 +226,7 @@ static void budgie_popover_grab(BudgiePopover *self)
 
         st = gdk_seat_grab(seat, window, caps, TRUE, NULL, NULL, NULL, NULL);
         if (st == GDK_GRAB_SUCCESS) {
-                self->grabbed = TRUE;
+                self->priv->grabbed = TRUE;
                 gtk_grab_add(GTK_WIDGET(self));
         }
 }
@@ -244,7 +239,7 @@ static void budgie_popover_ungrab(BudgiePopover *self)
         GdkDisplay *display = NULL;
         GdkSeat *seat = NULL;
 
-        if (!self->grabbed) {
+        if (!self->priv->grabbed) {
                 return;
         }
 
@@ -253,7 +248,7 @@ static void budgie_popover_ungrab(BudgiePopover *self)
 
         gtk_grab_remove(GTK_WIDGET(self));
         gdk_seat_ungrab(seat);
-        self->grabbed = FALSE;
+        self->priv->grabbed = FALSE;
 }
 
 /**
@@ -267,7 +262,7 @@ static gboolean budgie_popover_grab_broken(GtkWidget *widget, __budgie_unused__ 
         g_message("Broke");
 
         self = BUDGIE_POPOVER(widget);
-        self->grabbed = FALSE;
+        self->priv->grabbed = FALSE;
         return GDK_EVENT_PROPAGATE;
 }
 
@@ -416,12 +411,12 @@ static void budgie_popover_add(GtkContainer *container, GtkWidget *widget)
         self = BUDGIE_POPOVER(container);
 
         /* Only add internal area to self for real. Anything else goes to add_area */
-        if (widget == self->add_area) {
+        if (widget == self->priv->add_area) {
                 GTK_CONTAINER_CLASS(budgie_popover_parent_class)->add(container, widget);
                 return;
         }
 
-        gtk_container_add(GTK_CONTAINER(self->add_area), widget);
+        gtk_container_add(GTK_CONTAINER(self->priv->add_area), widget);
 }
 
 /**
@@ -468,7 +463,7 @@ static void budgie_popover_set_property(GObject *object, guint id, const GValue 
 
         switch (id) {
         case PROP_RELATIVE_TO:
-                self->relative_to = g_value_get_object(value);
+                self->priv->relative_to = g_value_get_object(value);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID(object, id, spec);
@@ -482,7 +477,7 @@ static void budgie_popover_get_property(GObject *object, guint id, GValue *value
 
         switch (id) {
         case PROP_RELATIVE_TO:
-                g_value_set_object(value, self->relative_to);
+                g_value_set_object(value, self->priv->relative_to);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID(object, id, spec);

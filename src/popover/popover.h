@@ -18,6 +18,16 @@ G_BEGIN_DECLS
 
 typedef struct _BudgiePopover BudgiePopover;
 typedef struct _BudgiePopoverClass BudgiePopoverClass;
+typedef struct _BudgiePopoverPrivate BudgiePopoverPrivate;
+
+struct _BudgiePopoverClass {
+        GtkWindowClass parent_class;
+};
+
+struct _BudgiePopover {
+        GtkWindow parent;
+        BudgiePopoverPrivate *priv;
+};
 
 #define BUDGIE_TYPE_POPOVER budgie_popover_get_type()
 #define BUDGIE_POPOVER(o) (G_TYPE_CHECK_INSTANCE_CAST((o), BUDGIE_TYPE_POPOVER, BudgiePopover))
