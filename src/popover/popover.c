@@ -375,7 +375,7 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
                 }
         }
 
-        tail_position = GTK_POS_LEFT;
+        tail_position = GTK_POS_TOP;
 
         /* Now work out where we live on screen */
         switch (tail_position) {
@@ -474,6 +474,14 @@ static void budgie_popover_compute_tail(BudgiePopover *self)
                 t.end_y = t.y + TAIL_HEIGHT;
                 t.start_x = t.end_x = t.x - TAIL_HEIGHT - SHADOW_DIMENSION;
                 break;
+        case GTK_POS_TOP:
+                t.x = (alloc.x + alloc.width / 2);
+                t.y = alloc.y + SHADOW_DIMENSION;
+                t.start_x = t.x - TAIL_HEIGHT;
+                t.end_x = t.start_x + TAIL_DIMENSION;
+                t.start_y = t.y + TAIL_HEIGHT;
+                t.end_y = t.start_y;
+                break;
         case GTK_POS_BOTTOM:
         default:
                 t.x = (alloc.x + alloc.width / 2);
@@ -537,11 +545,6 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
 
         gdouble gap_start = 0, gap_end = 0;
 
-        // body_alloc.x += SHADOW_DIMENSION;
-        // body_alloc.y += SHADOW_DIMENSION;
-        // body_alloc.width -= SHADOW_DIMENSION * 2;
-        // body_alloc.height -= SHADOW_DIMENSION * 2;
-
         body_alloc.x += SHADOW_DIMENSION;
         body_alloc.width -= SHADOW_DIMENSION * 2;
         body_alloc.y += SHADOW_DIMENSION;
@@ -558,6 +561,12 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
                 body_alloc.width -= TAIL_HEIGHT;
                 gap_start = tail->start_y;
                 gap_start = tail->end_y;
+                break;
+        case GTK_POS_TOP:
+                body_alloc.height -= TAIL_HEIGHT;
+                body_alloc.y += TAIL_HEIGHT;
+                gap_start = tail->start_x;
+                gap_start = tail->end_x;
                 break;
         case GTK_POS_BOTTOM:
         default:
