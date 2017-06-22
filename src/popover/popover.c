@@ -22,7 +22,7 @@ BUDGIE_END_PEDANTIC
  * We'll likely take this from a style property in future, but for now it
  * is both the width and height of a tail
  */
-#define TAIL_DIMENSION 20
+#define TAIL_DIMENSION 16
 #define TAIL_HEIGHT TAIL_DIMENSION / 2
 #define SHADOW_DIMENSION 4
 
@@ -378,7 +378,7 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
                 }
         }
 
-        tail_position = GTK_POS_BOTTOM;
+        tail_position = GTK_POS_LEFT;
 
         /* Now work out where we live on screen */
         switch (tail_position) {
@@ -522,7 +522,6 @@ static void budgie_popover_draw_tail(BudgiePopover *self, cairo_t *cr)
 
         /* Draw "through" the previous box-shadow */
         cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
-        cairo_set_antialias(cr, CAIRO_ANTIALIAS_SUBPIXEL);
         cairo_set_line_cap(cr, CAIRO_LINE_CAP_BUTT);
         cairo_set_line_join(cr, CAIRO_LINE_JOIN_MITER);
         cairo_move_to(cr, tail->start_x, tail->start_y);
@@ -549,6 +548,8 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
         self = BUDGIE_POPOVER(widget);
         tail = &(self->priv->tail);
         fl = GTK_STATE_FLAG_VISITED;
+
+        cairo_set_antialias(cr, CAIRO_ANTIALIAS_SUBPIXEL);
 
         style = gtk_widget_get_style_context(widget);
         gtk_widget_get_allocation(widget, &alloc);
