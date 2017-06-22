@@ -172,9 +172,9 @@ static void budgie_popover_init(BudgiePopover *self)
         /* TESTING: To let us develop the tail render code */
         g_object_set(self->add_area,
                      "margin-top",
-                     10,
+                     5,
                      "margin-bottom",
-                     20,
+                     15,
                      "margin-start",
                      5,
                      "margin-end",
