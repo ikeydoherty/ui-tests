@@ -679,6 +679,9 @@ static void budgie_popover_set_property(GObject *object, guint id, const GValue 
         switch (id) {
         case PROP_RELATIVE_TO:
                 self->priv->relative_to = g_value_get_object(value);
+                if (self->priv->relative_to) {
+                        budgie_popover_compute_tail(self);
+                }
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID(object, id, spec);
