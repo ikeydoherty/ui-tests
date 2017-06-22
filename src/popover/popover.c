@@ -29,6 +29,7 @@ struct _BudgiePopoverPrivate {
         gboolean grabbed;
         GtkWidget *add_area;
         GtkWidget *relative_to;
+        GtkPositionType tail_position;
 };
 
 /**
@@ -65,6 +66,9 @@ static gboolean budgie_popover_key_press(GtkWidget *widget, GdkEventKey *key, gp
 static void budgie_popover_set_property(GObject *object, guint id, const GValue *value,
                                         GParamSpec *spec);
 static void budgie_popover_get_property(GObject *object, guint id, GValue *value, GParamSpec *spec);
+static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle *target,
+                                              GtkPositionType *final_tail);
+static void budgie_popover_compute_widget_geometry(GtkWidget *parent_widget, GdkRectangle *target);
 
 /**
  * budgie_popover_dispose:
@@ -173,13 +177,23 @@ static void budgie_popover_init(BudgiePopover *self)
 static void budgie_popover_map(GtkWidget *widget)
 {
         GdkWindow *window = NULL;
+        GdkRectangle coords = { 0 };
+        BudgiePopover *self = NULL;
+        GtkPositionType tail_position = GTK_POS_BOTTOM;
 
-        /* TODO: Work out our placement here */
+        self = BUDGIE_POPOVER(widget);
+
+        /* Work out where we go on screen now */
+        budgie_popover_compute_positition(self, &coords, &tail_position);
+
+        g_message("Appearing at X, Y: %d %d", coords.x, coords.y);
+        self->priv->tail_position = tail_position;
 
         /* Forcibly request focus */
         window = gtk_widget_get_window(widget);
         gdk_window_set_accept_focus(window, TRUE);
         gdk_window_focus(window, GDK_CURRENT_TIME);
+        gdk_window_move(window, coords.x, coords.y);
         gtk_window_present(GTK_WINDOW(widget));
 
         budgie_popover_grab(BUDGIE_POPOVER(widget));
@@ -294,6 +308,90 @@ static void budgie_popover_grab_notify(GtkWidget *widget, gboolean was_grabbed,
         budgie_popover_grab(self);
         budgie_popover_ungrab(BUDGIE_POPOVER(widget));
         budgie_popover_grab(self);
+}
+
+/**
+ * Work out the geometry for the relative_to widget in absolute coordinates
+ * on the screen.
+ */
+static void budgie_popover_compute_widget_geometry(GtkWidget *parent_widget, GdkRectangle *target)
+{
+        GtkAllocation alloc = { 0 };
+        GtkWidget *toplevel = NULL;
+        GdkWindow *toplevel_window = NULL;
+        gint rx, ry = 0;
+        gint x, y = 0;
+
+        if (!parent_widget) {
+                g_warning("compute_widget_geometry(): missing relative_widget");
+                return;
+        }
+
+        toplevel = gtk_widget_get_toplevel(parent_widget);
+        toplevel_window = gtk_widget_get_window(toplevel);
+        gdk_window_get_position(toplevel_window, &x, &y);
+        gtk_widget_translate_coordinates(parent_widget, toplevel, x, y, &rx, &ry);
+        gtk_widget_get_allocation(parent_widget, &alloc);
+
+        *target = (GdkRectangle){.x = rx, .y = ry, .width = alloc.width, .height = alloc.height };
+}
+
+/**
+ * Work out exactly where the popover needs to appear on screen
+ *
+ * This will try to account for all potential positions, using a fairly
+ * biased view of what the popover should do in each situation.
+ *
+ * Unlike a typical popover implementation, this relies on some information
+ * from the toplevel window on what edge it happens to be on.
+ */
+static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle *target,
+                                              GtkPositionType *final_tail)
+{
+        GdkRectangle widget_rect = { 0 };
+        GtkPositionType tail_position = GTK_POS_BOTTOM;
+        gint our_width = 0, our_height = 0;
+        GtkWidget *parent_window = NULL;
+        int x = 0, y = 0, width = 0, height = 0;
+
+        /* Find out where the widget is on screen */
+        budgie_popover_compute_widget_geometry(self->priv->relative_to, &widget_rect);
+
+        /* Work out our own size */
+        gtk_window_get_size(GTK_WINDOW(self), &our_width, &our_height);
+
+        /* Tail points out from the panel */
+        parent_window = gtk_widget_get_toplevel(self->priv->relative_to);
+        if (parent_window) {
+                GtkStyleContext *context = gtk_widget_get_style_context(parent_window);
+                if (gtk_style_context_has_class(context, "bottom")) {
+                        tail_position = GTK_POS_TOP;
+                } else if (gtk_style_context_has_class(context, "left")) {
+                        tail_position = GTK_POS_RIGHT;
+                } else if (gtk_style_context_has_class(context, "right")) {
+                        tail_position = GTK_POS_LEFT;
+                } else {
+                        tail_position = GTK_POS_BOTTOM;
+                }
+        }
+
+        /* Now work out where we live on screen */
+        switch (tail_position) {
+        case GTK_POS_BOTTOM:
+                /* We need to appear above the widget */
+                y = widget_rect.y - our_height;
+                break;
+        case GTK_POS_TOP:
+                /* We need to appear below the widget */
+                y = widget_rect.y + widget_rect.height + (TAIL_DIMENSION / 2);
+                break;
+        default:
+                break;
+        }
+
+        /* Set the target rectangle */
+        *target = (GdkRectangle){.x = x, .y = y, .width = width, .height = height };
+        *final_tail = tail_position;
 }
 
 static void budgie_popover_compute_tail(GtkWidget *widget, BudgieTail *tail)
@@ -520,7 +618,7 @@ GtkWidget *budgie_popover_new(GtkWidget *relative_to)
                             "type-hint",
                             GDK_WINDOW_TYPE_HINT_POPUP_MENU,
                             "window-position",
-                            GTK_WIN_POS_CENTER,
+                            GTK_WIN_POS_NONE,
                             NULL);
 }
 
