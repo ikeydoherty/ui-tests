@@ -378,7 +378,7 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
                 }
         }
 
-        tail_position = GTK_POS_TOP;
+        tail_position = GTK_POS_LEFT;
 
         /* Now work out where we live on screen */
         switch (tail_position) {
@@ -423,7 +423,7 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
                              "margin-top",
                              5,
                              "margin-bottom",
-                             5,
+                             10,
                              "margin-start",
                              15,
                              "margin-end",
@@ -566,6 +566,7 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
 
         switch (self->priv->tail.position) {
         case GTK_POS_LEFT:
+                body_alloc.height -= SHADOW_DIMENSION;
                 body_alloc.width -= TAIL_HEIGHT;
                 body_alloc.x += TAIL_HEIGHT;
                 gap_start = tail->start_y;
