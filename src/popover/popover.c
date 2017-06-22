@@ -23,6 +23,7 @@ BUDGIE_END_PEDANTIC
  * is both the width and height of a tail
  */
 #define TAIL_DIMENSION 20
+#define TAIL_HEIGHT TAIL_DIMENSION / 2
 #define SHADOW_DIMENSION 4
 
 /**
@@ -413,15 +414,17 @@ static void budgie_popover_compute_tail(BudgiePopover *self)
 
         gtk_widget_get_allocation(GTK_WIDGET(self), &alloc);
 
-        /* Right now just assume we're centered and at the bottom. */
-        t.x = (alloc.x + alloc.width / 2) - SHADOW_DIMENSION;
-        t.y = (alloc.y + alloc.height) - SHADOW_DIMENSION;
-
-        t.start_x = t.x - (TAIL_DIMENSION / 2);
-        t.end_x = t.start_x + TAIL_DIMENSION;
-
-        t.start_y = t.y - (TAIL_DIMENSION / 2);
-        t.end_y = t.start_y;
+        switch (self->priv->tail.position) {
+        case GTK_POS_BOTTOM:
+        default:
+                t.x = (alloc.x + alloc.width / 2) - SHADOW_DIMENSION;
+                t.y = (alloc.y + alloc.height) - SHADOW_DIMENSION;
+                t.start_x = t.x - TAIL_HEIGHT;
+                t.end_x = t.start_x + TAIL_DIMENSION;
+                t.start_y = t.y - TAIL_HEIGHT;
+                t.end_y = t.start_y;
+                break;
+        }
 
         self->priv->tail = t;
 }
