@@ -29,6 +29,20 @@ struct _BudgiePopover {
         BudgiePopoverPrivate *priv;
 };
 
+/**
+ * BudgiePopoverPositionPolicy:
+ * @BUDGIE_POPOVER_POSITION_AUTOMATIC: Determine location based on the screen estate
+ * @BUDGIE_POPOVER_POSITION_TOPLEVEL_HINT: Use hints on widgets parent window
+ *
+ * The BudgiePopoverPositionPolicy determines how the #BudgiePopover will be
+ * placed on screen. The default policy (AUTOMATIC) will try to place the
+ * popover at a sensible location relative to the parent widget, and point
+ * the tail accordingly.
+ *
+ * The TOPLEVEL_HINT policy is designed for use with panels + docks, where the
+ * top level window owning the relative-to widget sets a CSS class on itself
+ * in accordance with the screen edge, i.e. top, left, bottom, right.
+ */
 typedef enum {
         BUDGIE_POPOVER_POSITION_AUTOMATIC = 1 << 0,
         BUDGIE_POPOVER_POSITION_TOPLEVEL_HINT = 1 << 0,
