@@ -150,16 +150,30 @@ void budgie_popover_manager_show_popover(BudgiePopoverManager *self, GtkWidget *
 }
 
 /**
+ * The widget has died, so remove it from our internal state
+ */
+static void budgie_popover_manager_widget_died(BudgiePopoverManager *self, GtkWidget *child)
+{
+        if (!g_hash_table_contains(self->popovers, child)) {
+                return;
+        }
+        g_hash_table_remove(self->popovers, child);
+}
+
+/**
  * Hook up the various signals we need to manage this popover correctly
  */
 static void budgie_popover_manager_link_signals(BudgiePopoverManager *self,
-                                                __budgie_unused__ GtkWidget *parent_widget,
-                                                BudgiePopover *popover)
+                                                GtkWidget *parent_widget, BudgiePopover *popover)
 {
         /* Need enter-notify to check if we entered a parent widget */
         g_signal_connect_swapped(popover,
                                  "enter-notify-event",
                                  G_CALLBACK(budgie_popover_manager_enter_notify),
+                                 self);
+        g_signal_connect_swapped(parent_widget,
+                                 "destroy",
+                                 G_CALLBACK(budgie_popover_manager_widget_died),
                                  self);
         g_signal_connect(popover,
                          "map-event",
@@ -175,9 +189,9 @@ static void budgie_popover_manager_link_signals(BudgiePopoverManager *self,
  * Disconnect any prior signals for this popover so we stop receiving events for it
  */
 static void budgie_popover_manager_unlink_signals(BudgiePopoverManager *self,
-                                                  __budgie_unused__ GtkWidget *parent_widget,
-                                                  BudgiePopover *popover)
+                                                  GtkWidget *parent_widget, BudgiePopover *popover)
 {
+        g_signal_handlers_disconnect_by_data(parent_widget, self);
         g_signal_handlers_disconnect_by_data(popover, self);
 }
 

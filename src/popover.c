@@ -830,6 +830,15 @@ static gboolean budgie_popover_key_press(GtkWidget *widget, GdkEventKey *key,
         return GDK_EVENT_PROPAGATE;
 }
 
+/**
+ * Our associated widget has died, so we must unref ourselves now.
+ */
+static void budgie_popover_disconnect(__budgie_unused__ GtkWidget *relative_to, BudgiePopover *self)
+{
+        self->priv->relative_to = NULL;
+        gtk_widget_destroy(GTK_WIDGET(self));
+}
+
 static void budgie_popover_set_property(GObject *object, guint id, const GValue *value,
                                         GParamSpec *spec)
 {
@@ -837,8 +846,15 @@ static void budgie_popover_set_property(GObject *object, guint id, const GValue 
 
         switch (id) {
         case PROP_RELATIVE_TO:
+                if (self->priv->relative_to) {
+                        g_signal_handlers_disconnect_by_data(self->priv->relative_to, self);
+                }
                 self->priv->relative_to = g_value_get_object(value);
                 if (self->priv->relative_to) {
+                        g_signal_connect(self->priv->relative_to,
+                                         "destroy",
+                                         G_CALLBACK(budgie_popover_disconnect),
+                                         self);
                         budgie_popover_compute_tail(self);
                 }
                 break;
