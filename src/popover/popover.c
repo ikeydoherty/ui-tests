@@ -488,7 +488,7 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
         /* Work out the real geometry involved here */
         budgie_popover_get_screen_for_widget(self->priv->relative_to, &display_geom);
 
-        static int pad_num = 2;
+        static int pad_num = 1;
 
         /* Bound X to display width */
         if (x < display_geom.x) {
@@ -501,7 +501,7 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
         }
 
         double display_tail_x = x + self->priv->tail.x + self->priv->tail.x_offset;
-        static int required_offset = TAIL_DIMENSION * 1.25;
+        static double required_offset = TAIL_DIMENSION * 1.25;
 
         /* Prevent the tail pointer spilling outside the X bounds */
         if (display_tail_x <= display_geom.x + required_offset) {
