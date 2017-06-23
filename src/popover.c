@@ -370,6 +370,31 @@ static void budgie_popover_get_screen_for_widget(GtkWidget *widget, GdkRectangle
 }
 
 /**
+ * Select the position of the popover tail (and extend outwards from it)
+ * based on the hints provided by the toplevel
+ */
+static GtkPositionType budgie_popover_select_position_toplevel(BudgiePopover *self)
+{
+        GtkWidget *parent_window = NULL;
+
+        /* Tail points out from the panel */
+        parent_window = gtk_widget_get_toplevel(self->priv->relative_to);
+        if (parent_window) {
+                GtkStyleContext *context = gtk_widget_get_style_context(parent_window);
+                if (gtk_style_context_has_class(context, "top")) {
+                        return GTK_POS_TOP;
+                } else if (gtk_style_context_has_class(context, "left")) {
+                        return GTK_POS_LEFT;
+                } else if (gtk_style_context_has_class(context, "right")) {
+                        return GTK_POS_RIGHT;
+                } else {
+                        return GTK_POS_BOTTOM;
+                }
+        }
+        return GTK_POS_BOTTOM;
+}
+
+/**
  * Work out exactly where the popover needs to appear on screen
  *
  * This will try to account for all potential positions, using a fairly
@@ -383,7 +408,6 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
         GdkRectangle widget_rect = { 0 };
         GtkPositionType tail_position = GTK_POS_BOTTOM;
         gint our_width = 0, our_height = 0;
-        GtkWidget *parent_window = NULL;
         GtkStyleContext *style = NULL;
         int x = 0, y = 0, width = 0, height = 0;
         static const gchar *position_classes[] = { "top", "left", "right", "bottom" };
@@ -396,22 +420,12 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
         /* Work out our own size */
         gtk_window_get_size(GTK_WINDOW(self), &our_width, &our_height);
 
-        /* Tail points out from the panel */
-        parent_window = gtk_widget_get_toplevel(self->priv->relative_to);
-        if (parent_window) {
-                GtkStyleContext *context = gtk_widget_get_style_context(parent_window);
-                if (gtk_style_context_has_class(context, "top")) {
-                        tail_position = GTK_POS_TOP;
-                } else if (gtk_style_context_has_class(context, "left")) {
-                        tail_position = GTK_POS_LEFT;
-                } else if (gtk_style_context_has_class(context, "right")) {
-                        tail_position = GTK_POS_RIGHT;
-                } else {
-                        tail_position = GTK_POS_BOTTOM;
-                }
+        if (self->priv->policy == BUDGIE_POPOVER_POSITION_TOPLEVEL_HINT) {
+                tail_position = budgie_popover_select_position_toplevel(self);
+        } else {
+                /* tail_position = budgie_popover_select_position_automatic(self); */
+                tail_position = GTK_POS_TOP;
         }
-
-        tail_position = GTK_POS_TOP;
 
         /* Now work out where we live on screen */
         switch (tail_position) {
