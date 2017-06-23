@@ -43,7 +43,7 @@ void budgie_popover_manager_register_popover(BudgiePopoverManager *manager,
                                              GtkWidget *parent_widget, BudgiePopover *popover);
 void budgie_popover_manager_unregister_popover(BudgiePopoverManager *manager,
                                                GtkWidget *parent_widget);
-void budgie_popover_manager_show_popover(BudgiePopover *manager, GtkWidget *parent_widget);
+void budgie_popover_manager_show_popover(BudgiePopoverManager *manager, GtkWidget *parent_widget);
 
 G_END_DECLS
 

@@ -190,8 +190,6 @@ static void budgie_popover_map(GtkWidget *widget)
         budgie_popover_compute_positition(self, &coords);
         gtk_widget_queue_draw(widget);
 
-        g_message("Appearing at X, Y: %d %d", coords.x, coords.y);
-
         /* Forcibly request focus */
         window = gtk_widget_get_window(widget);
         gdk_window_set_accept_focus(window, TRUE);
@@ -222,8 +220,6 @@ static void budgie_popover_grab(BudgiePopover *self)
         GdkWindow *window = NULL;
         GdkSeatCapabilities caps = 0;
         GdkGrabStatus st;
-
-        g_message("regrab");
 
         if (self->priv->grabbed) {
                 return;
@@ -276,8 +272,6 @@ static gboolean budgie_popover_grab_broken(GtkWidget *widget, __budgie_unused__ 
 {
         BudgiePopover *self = NULL;
 
-        g_message("Broke");
-
         self = BUDGIE_POPOVER(widget);
         self->priv->grabbed = FALSE;
         return GDK_EVENT_PROPAGATE;
@@ -299,7 +293,6 @@ static void budgie_popover_grab_notify(GtkWidget *widget, gboolean was_grabbed,
                 return;
         }
 
-        g_message("Derp notify");
         budgie_popover_ungrab(BUDGIE_POPOVER(widget));
 
         /* And being visible. ofc. */

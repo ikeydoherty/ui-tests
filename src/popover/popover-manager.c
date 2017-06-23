@@ -129,11 +129,20 @@ void budgie_popover_manager_unregister_popover(BudgiePopoverManager *self, GtkWi
         g_hash_table_remove(self->popovers, parent_widget);
 }
 
-void budgie_popover_manager_show_popover(BudgiePopover *self, GtkWidget *parent_widget)
+void budgie_popover_manager_show_popover(BudgiePopoverManager *self, GtkWidget *parent_widget)
 {
+        GtkWidget *popover = NULL;
+
         g_assert(self != NULL);
         g_return_if_fail(parent_widget != NULL);
-        g_warning("show_popover(): not yet implemented");
+
+        popover = g_hash_table_lookup(self->popovers, parent_widget);
+        if (!popover) {
+                g_warning("show_popover(): Widget %p is unknown", (gpointer)parent_widget);
+                return;
+        }
+
+        gtk_widget_show(popover);
 }
 
 /**
@@ -156,7 +165,6 @@ static void budgie_popover_manager_link_signals(BudgiePopoverManager *self,
                          "unmap-event",
                          G_CALLBACK(budgie_popover_manager_popover_unmapped),
                          self);
-        g_warning("link_signals(): not yet fully implemented");
 }
 
 /**
@@ -200,7 +208,6 @@ static gboolean budgie_popover_manager_enter_notify(BudgiePopoverManager *self,
                                                                          (gint)crossing->x_root,
                                                                          (gint)crossing->y_root);
         if (!target_activatable) {
-                g_message("No target found");
                 return GDK_EVENT_PROPAGATE;
         }
 
@@ -209,12 +216,6 @@ static gboolean budgie_popover_manager_enter_notify(BudgiePopoverManager *self,
         if ((BudgiePopover *)target_popover == self->active_popover) {
                 return GDK_EVENT_PROPAGATE;
         }
-
-        g_message("Got target %s %p",
-                  gtk_widget_get_name(target_activatable),
-                  (gpointer)target_activatable);
-
-        g_message("enter-notify-event");
 
         if (self->active_popover) {
                 gtk_widget_hide(GTK_WIDGET(self->active_popover));
