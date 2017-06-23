@@ -179,7 +179,9 @@ static void budgie_popover_init(BudgiePopover *self)
         /* We do all rendering */
         gtk_widget_set_app_paintable(GTK_WIDGET(self), TRUE);
 
-        /* TESTING: To let us develop the tail render code */
+        /* Set initial placement up for default bottom position */
+        self->priv->tail.position = GTK_POS_BOTTOM;
+
         g_object_set(self->priv->add_area,
                      "margin-top",
                      5,
