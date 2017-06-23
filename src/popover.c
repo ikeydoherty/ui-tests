@@ -731,7 +731,9 @@ static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr)
 
         gtk_style_context_set_state(style, GTK_STATE_FLAG_BACKDROP);
         /* Warning: Using deprecated API */
+        G_GNUC_BEGIN_IGNORE_DEPRECATIONS
         gtk_style_context_get_border_color(style, fl, &border_color);
+        G_GNUC_END_IGNORE_DEPRECATIONS
         gtk_style_context_get_border(style, fl, &border);
         gtk_render_background(style,
                               cr,
