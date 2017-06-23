@@ -42,7 +42,6 @@ static gboolean show_popover_cb(__budgie_unused__ GtkWidget *window,
 {
         GtkWidget *popover = udata;
 
-        g_message("GOT CLICKED YO");
         if (gtk_widget_get_visible(popover)) {
                 gtk_widget_hide(popover);
         } else {
@@ -95,7 +94,7 @@ int main(int argc, char **argv)
 
         main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
         gtk_window_set_title(GTK_WINDOW(main_window), "Popovers..");
-        gtk_window_set_default_size(main_window, -1, -1);
+        gtk_window_set_default_size(GTK_WINDOW(main_window), -1, -1);
 
         layout = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
         gtk_widget_set_valign(layout, GTK_ALIGN_CENTER);
