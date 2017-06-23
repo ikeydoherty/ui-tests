@@ -895,6 +895,32 @@ GtkWidget *budgie_popover_new(GtkWidget *relative_to)
                             NULL);
 }
 
+/**
+ * budgie_popover_set_position_policy:
+ *
+ * Set the positioning policy employed by the popover
+ *
+ * @policy: New policy to use for positioning the popover
+ */
+void budgie_popover_set_position_policy(BudgiePopover *self, BudgiePopoverPositionPolicy policy)
+{
+        g_return_if_fail(popover != NULL);
+        g_object_set(popover, "position-policy", policy);
+}
+
+/**
+ * budgie_popover_get_position_policy:
+ *
+ * Retrieve the currently active positioning policy for this popover
+ *
+ * Returns: The #BudgiePopoverPositionPolicy currently in use
+ */
+BudgiePopoverPositionPolicy budgie_popover_get_position_policy(BudgiePopover *self)
+{
+        g_return_val_if_fail(popover != NULL, 0);
+        return self->priv->policy;
+}
+
 /*
  * Editor modelines  -  https://www.wireshark.org/tools/modelines.html
  *

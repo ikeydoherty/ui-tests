@@ -57,7 +57,14 @@ typedef enum {
 #define BUDGIE_POPOVER_GET_CLASS(o)                                                                \
         (G_TYPE_INSTANCE_GET_CLASS((o), BUDGIE_TYPE_POPOVER, BudgiePopoverClass))
 
+/**
+ * API Methods
+ */
+
 GtkWidget *budgie_popover_new(GtkWidget *relative_to);
+
+void budgie_popover_set_position_policy(BudgiePopover *popover, BudgiePopoverPositionPolicy policy);
+BudgiePopoverPositionPolicy budgie_popover_get_position_policy(BudgiePopover *popover);
 
 GType budgie_popover_get_type(void);
 
