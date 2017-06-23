@@ -904,8 +904,8 @@ GtkWidget *budgie_popover_new(GtkWidget *relative_to)
  */
 void budgie_popover_set_position_policy(BudgiePopover *self, BudgiePopoverPositionPolicy policy)
 {
-        g_return_if_fail(popover != NULL);
-        g_object_set(popover, "position-policy", policy);
+        g_return_if_fail(self != NULL);
+        g_object_set(self, "position-policy", policy, NULL);
 }
 
 /**
@@ -917,7 +917,7 @@ void budgie_popover_set_position_policy(BudgiePopover *self, BudgiePopoverPositi
  */
 BudgiePopoverPositionPolicy budgie_popover_get_position_policy(BudgiePopover *self)
 {
-        g_return_val_if_fail(popover != NULL, 0);
+        g_return_val_if_fail(self != NULL, 0);
         return self->priv->policy;
 }
 
