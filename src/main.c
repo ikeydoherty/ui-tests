@@ -24,7 +24,7 @@ static void budgie_popover_demo_load_css(void)
 
         screen = gdk_screen_get_default();
         css = gtk_css_provider_new();
-        gtk_css_provider_load_from_path(css, "src/popover/styling.css", NULL);
+        gtk_css_provider_load_from_path(css, "src/styling.css", NULL);
         gtk_style_context_add_provider_for_screen(screen,
                                                   GTK_STYLE_PROVIDER(css),
                                                   GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
