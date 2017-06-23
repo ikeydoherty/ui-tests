@@ -32,9 +32,9 @@ static void budgie_popover_demo_load_css(void)
 
 static void button_click_cb(__budgie_unused__ GtkWidget *pop, gpointer udata)
 {
-        GtkWidget *popover = udata;
-
-        gtk_widget_hide(popover);
+        GtkRevealer *revealer = udata;
+        gboolean new_state = !gtk_revealer_get_reveal_child(revealer);
+        gtk_revealer_set_reveal_child(revealer, new_state);
 }
 
 static gboolean show_popover_cb(__budgie_unused__ GtkWidget *window,
@@ -54,27 +54,35 @@ static gboolean show_popover_cb(__budgie_unused__ GtkWidget *window,
 static GtkWidget *sudo_make_me_a_popover(GtkWidget *relative_to, const gchar *le_label)
 {
         GtkWidget *popover = NULL;
-        GtkWidget *entry, *button, *layout = NULL;
+        GtkWidget *revealer, *label, *button, *layout = NULL;
 
         popover = budgie_popover_new(relative_to);
+
+        revealer = gtk_revealer_new();
+        label = gtk_label_new(le_label);
+        gtk_label_set_use_markup(GTK_LABEL(label), TRUE);
+        gtk_revealer_set_reveal_child(GTK_REVEALER(revealer), FALSE);
+        gtk_widget_set_size_request(GTK_WIDGET(label), -1, 400);
+        gtk_revealer_set_transition_type(GTK_REVEALER(revealer),
+                                         GTK_REVEALER_TRANSITION_TYPE_SLIDE_DOWN);
+        gtk_container_add(GTK_CONTAINER(revealer), label);
 
         layout = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
         gtk_container_set_border_width(GTK_CONTAINER(layout), 5);
         gtk_container_add(GTK_CONTAINER(popover), layout);
 
         /* Add content */
-        entry = gtk_entry_new();
-        gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Type here!");
-        gtk_box_pack_start(GTK_BOX(layout), entry, TRUE, TRUE, 2);
+        button = gtk_button_new_with_label("Toggle revealer");
+        g_signal_connect(button, "clicked", G_CALLBACK(button_click_cb), revealer);
 
-        button = gtk_button_new_with_label(le_label);
-        g_signal_connect(button, "clicked", G_CALLBACK(button_click_cb), popover);
-        gtk_box_pack_end(GTK_BOX(layout), button, FALSE, FALSE, 2);
+        gtk_box_pack_start(GTK_BOX(layout), button, FALSE, FALSE, 0);
+        gtk_box_pack_start(GTK_BOX(layout), revealer, TRUE, TRUE, 0);
 
         /* Popovery methods */
         g_signal_connect(popover, "destroy", gtk_main_quit, NULL);
 
         gtk_widget_show_all(layout);
+        gtk_revealer_set_reveal_child(GTK_REVEALER(revealer), FALSE);
 
         return popover;
 }
@@ -104,7 +112,7 @@ int main(int argc, char **argv)
 
         /* Hook up the popover to the actionable button */
         button = gtk_toggle_button_new_with_label("Click me #1");
-        popover = sudo_make_me_a_popover(button, "Popover #1");
+        popover = sudo_make_me_a_popover(button, "<big>Popover #1</big>");
 
         g_object_bind_property(popover, "visible", button, "active", G_BINDING_DEFAULT);
         budgie_popover_manager_register_popover(manager, button, BUDGIE_POPOVER(popover));
@@ -113,7 +121,7 @@ int main(int argc, char **argv)
         g_signal_connect(button, "button-press-event", G_CALLBACK(show_popover_cb), popover);
 
         button = gtk_toggle_button_new_with_label("Click me #2");
-        popover = sudo_make_me_a_popover(button, "Popover #2");
+        popover = sudo_make_me_a_popover(button, "<big>Popover #2</big>");
         g_object_bind_property(popover, "visible", button, "active", G_BINDING_DEFAULT);
         gtk_box_pack_start(GTK_BOX(layout), button, FALSE, FALSE, 0);
 
