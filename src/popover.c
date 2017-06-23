@@ -379,18 +379,19 @@ static GtkPositionType budgie_popover_select_position_toplevel(BudgiePopover *se
 
         /* Tail points out from the panel */
         parent_window = gtk_widget_get_toplevel(self->priv->relative_to);
-        if (parent_window) {
-                GtkStyleContext *context = gtk_widget_get_style_context(parent_window);
-                if (gtk_style_context_has_class(context, "top")) {
-                        return GTK_POS_TOP;
-                } else if (gtk_style_context_has_class(context, "left")) {
-                        return GTK_POS_LEFT;
-                } else if (gtk_style_context_has_class(context, "right")) {
-                        return GTK_POS_RIGHT;
-                } else {
-                        return GTK_POS_BOTTOM;
-                }
+        if (!parent_window) {
+                return GTK_POS_BOTTOM;
         }
+
+        GtkStyleContext *context = gtk_widget_get_style_context(parent_window);
+        if (gtk_style_context_has_class(context, "top")) {
+                return GTK_POS_TOP;
+        } else if (gtk_style_context_has_class(context, "left")) {
+                return GTK_POS_LEFT;
+        } else if (gtk_style_context_has_class(context, "right")) {
+                return GTK_POS_RIGHT;
+        }
+
         return GTK_POS_BOTTOM;
 }
 
