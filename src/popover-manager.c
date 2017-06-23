@@ -197,7 +197,7 @@ static void budgie_popover_manager_unlink_signals(BudgiePopoverManager *self,
 
 static gboolean show_one_popover(gpointer v)
 {
-        gtk_widget_show_all(GTK_WIDGET(v));
+        gtk_widget_show(GTK_WIDGET(v));
         return FALSE;
 }
 
