@@ -396,6 +396,43 @@ static GtkPositionType budgie_popover_select_position_toplevel(BudgiePopover *se
 }
 
 /**
+ * Select the position based on the amount of space available in the given
+ * regions.
+ *
+ * Typically we'll always try to display underneath first, and failing that
+ * we'll try to appear above.  If we're still estate-limited, we'll then try
+ * the right hand side, before finally falling back to the left hand side for display.
+ *
+ * The side options will also utilise Y-offsets and bounding to ensure there
+ * is always some way to fit the popover sanely on screen.
+ */
+static GtkPositionType budgie_popover_select_position_automatic(gint our_height,
+                                                                GdkRectangle screen_rect,
+                                                                GdkRectangle widget_rect)
+{
+        /* Try to show the popover underneath */
+        if (widget_rect.y + widget_rect.height + TAIL_HEIGHT + SHADOW_DIMENSION + our_height <=
+            screen_rect.y + screen_rect.height) {
+                return GTK_POS_TOP;
+        }
+
+        /* Now try to show the popover above the widget */
+        if (widget_rect.y - TAIL_HEIGHT - SHADOW_DIMENSION - our_height >= screen_rect.y) {
+                return GTK_POS_BOTTOM;
+        }
+
+        /* Work out which has more room, left or right. */
+        double room_right = screen_rect.x + screen_rect.width - (widget_rect.x + widget_rect.width);
+        double room_left = widget_rect.x - screen_rect.x;
+
+        if (room_left > room_right) {
+                return GTK_POS_RIGHT;
+        }
+
+        return GTK_POS_LEFT;
+}
+
+/**
  * Work out exactly where the popover needs to appear on screen
  *
  * This will try to account for all potential positions, using a fairly
@@ -421,11 +458,14 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
         /* Work out our own size */
         gtk_window_get_size(GTK_WINDOW(self), &our_width, &our_height);
 
+        /* Work out the real screen geometry involved here */
+        budgie_popover_get_screen_for_widget(self->priv->relative_to, &display_geom);
+
         if (self->priv->policy == BUDGIE_POPOVER_POSITION_TOPLEVEL_HINT) {
                 tail_position = budgie_popover_select_position_toplevel(self);
         } else {
-                /* tail_position = budgie_popover_select_position_automatic(self); */
-                tail_position = GTK_POS_TOP;
+                tail_position =
+                    budgie_popover_select_position_automatic(our_height, display_geom, widget_rect);
         }
 
         /* Now work out where we live on screen */
@@ -513,9 +553,6 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
         }
 
         gtk_style_context_add_class(style, style_class);
-
-        /* Work out the real geometry involved here */
-        budgie_popover_get_screen_for_widget(self->priv->relative_to, &display_geom);
 
         static int pad_num = 1;
 
