@@ -133,6 +133,15 @@ void budgie_popover_manager_unregister_popover(BudgiePopoverManager *self, GtkWi
         g_hash_table_remove(self->popovers, parent_widget);
 }
 
+/**
+ * Show a popover on the idle loop to prevent any weird event locks
+ */
+static gboolean show_one_popover(gpointer v)
+{
+        gtk_widget_show(GTK_WIDGET(v));
+        return FALSE;
+}
+
 void budgie_popover_manager_show_popover(BudgiePopoverManager *self, GtkWidget *parent_widget)
 {
         GtkWidget *popover = NULL;
@@ -146,7 +155,7 @@ void budgie_popover_manager_show_popover(BudgiePopoverManager *self, GtkWidget *
                 return;
         }
 
-        gtk_widget_show(popover);
+        g_idle_add(show_one_popover, popover);
 }
 
 /**
@@ -193,12 +202,6 @@ static void budgie_popover_manager_unlink_signals(BudgiePopoverManager *self,
 {
         g_signal_handlers_disconnect_by_data(parent_widget, self);
         g_signal_handlers_disconnect_by_data(popover, self);
-}
-
-static gboolean show_one_popover(gpointer v)
-{
-        gtk_widget_show(GTK_WIDGET(v));
-        return FALSE;
 }
 
 /**
