@@ -45,7 +45,7 @@ static gboolean show_popover_cb(__budgie_unused__ GtkWidget *window,
         if (gtk_widget_get_visible(popover)) {
                 gtk_widget_hide(popover);
         } else {
-                gtk_widget_show_all(popover);
+                gtk_widget_show(popover);
         }
 
         return GDK_EVENT_STOP;
@@ -73,6 +73,8 @@ static GtkWidget *sudo_make_me_a_popover(GtkWidget *relative_to, const gchar *le
 
         /* Popovery methods */
         g_signal_connect(popover, "destroy", gtk_main_quit, NULL);
+
+        gtk_widget_show_all(layout);
 
         return popover;
 }
