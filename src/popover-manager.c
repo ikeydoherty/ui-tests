@@ -108,6 +108,10 @@ void budgie_popover_manager_register_popover(BudgiePopoverManager *self, GtkWidg
                 return;
         }
 
+        /* We're a popover manager, so we're meant for use in some kind of panel
+         * situation. Use toplevel hints for better positioning */
+        budgie_popover_set_position_policy(popover, BUDGIE_POPOVER_POSITION_TOPLEVEL_HINT);
+
         /* Stick it into the map and hook it up */
         budgie_popover_manager_link_signals(self, parent_widget, popover);
         g_hash_table_insert(self->popovers, parent_widget, popover);
