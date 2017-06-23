@@ -43,7 +43,11 @@ static gboolean show_popover_cb(__budgie_unused__ GtkWidget *window,
         GtkWidget *popover = udata;
 
         g_message("GOT CLICKED YO");
-        gtk_widget_show_all(popover);
+        if (gtk_widget_get_visible(popover)) {
+                gtk_widget_hide(popover);
+        } else {
+                gtk_widget_show_all(popover);
+        }
 
         return GDK_EVENT_STOP;
 }

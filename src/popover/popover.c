@@ -698,6 +698,12 @@ static void budgie_popover_add(GtkContainer *container, GtkWidget *widget)
         gtk_container_add(GTK_CONTAINER(self->priv->add_area), widget);
 }
 
+static gboolean budgie_popover_hide_self(gpointer v)
+{
+        gtk_widget_hide(GTK_WIDGET(v));
+        return G_SOURCE_REMOVE;
+}
+
 /**
  * If the mouse button is pressed outside of our window, that's our cue to close.
  */
@@ -718,8 +724,8 @@ static gboolean budgie_popover_button_press(GtkWidget *widget, GdkEventButton *b
         }
 
         /* Happened outside, we're done. */
-        gtk_widget_hide(widget);
-        return GDK_EVENT_STOP;
+        g_idle_add(budgie_popover_hide_self, widget);
+        return GDK_EVENT_PROPAGATE;
 }
 
 /**
