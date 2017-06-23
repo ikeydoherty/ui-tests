@@ -569,14 +569,24 @@ static void budgie_popover_compute_positition(BudgiePopover *self, GdkRectangle 
         }
 
         double display_tail_x = x + self->priv->tail.x + self->priv->tail.x_offset;
-        static double required_offset = TAIL_DIMENSION * 1.25;
+        double display_tail_y = y + self->priv->tail.y + self->priv->tail.y_offset;
+        static double required_offset_x = TAIL_DIMENSION * 1.25;
+        static double required_offset_y = TAIL_DIMENSION * 1.75;
 
         /* Prevent the tail pointer spilling outside the X bounds */
-        if (display_tail_x <= display_geom.x + required_offset) {
-                self->priv->tail.x_offset += (display_geom.x + required_offset) - display_tail_x;
-        } else if (display_tail_x >= ((display_geom.x + display_geom.width) - required_offset)) {
+        if (display_tail_x <= display_geom.x + required_offset_x) {
+                self->priv->tail.x_offset += (display_geom.x + required_offset_x) - display_tail_x;
+        } else if (display_tail_x >= ((display_geom.x + display_geom.width) - required_offset_x)) {
                 self->priv->tail.x_offset -=
-                    (display_tail_x + required_offset) - (display_geom.x + display_geom.width);
+                    (display_tail_x + required_offset_x) - (display_geom.x + display_geom.width);
+        }
+
+        /* Prevent the tail pointer spilling outside the Y bounds */
+        if (display_tail_y <= display_geom.y + required_offset_y) {
+                self->priv->tail.y_offset += (display_geom.y + required_offset_y) - display_tail_y;
+        } else if (display_tail_y >= ((display_geom.y + display_geom.height) - required_offset_y)) {
+                self->priv->tail.y_offset -=
+                    (display_tail_y + required_offset_y) - (display_geom.y + display_geom.height);
         }
 
         /* Bound Y to display height */
