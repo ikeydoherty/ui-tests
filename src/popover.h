@@ -29,6 +29,11 @@ struct _BudgiePopover {
         BudgiePopoverPrivate *priv;
 };
 
+typedef enum {
+        BUDGIE_POPOVER_POSITION_AUTOMATIC = 1 << 0,
+        BUDGIE_POPOVER_POSITION_TOPLEVEL_HINT = 1 << 0,
+} BudgiePopoverPositionPolicy;
+
 #define BUDGIE_TYPE_POPOVER budgie_popover_get_type()
 #define BUDGIE_POPOVER(o) (G_TYPE_CHECK_INSTANCE_CAST((o), BUDGIE_TYPE_POPOVER, BudgiePopover))
 #define BUDGIE_IS_POPOVER(o) (G_TYPE_CHECK_INSTANCE_TYPE((o), BUDGIE_TYPE_POPOVER))

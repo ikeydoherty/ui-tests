@@ -33,14 +33,4 @@ gnome_minimum_version = '>= 3.18.0'
 
 dep_gtk3 = dependency('gtk+-3.0', version: gnome_minimum_version)
 
-
-executable(
-    'popover-test',
-    [
-        'src/popover.c',
-        'src/popover-manager.c',
-        'src/main.c',
-    ],
-    dependencies: [dep_gtk3],
-    install: false,
-)
+subdir('src')
