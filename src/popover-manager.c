@@ -38,8 +38,8 @@ static void budgie_popover_manager_unlink_signals(BudgiePopoverManager *manager,
                                                   GtkWidget *parent_widget, BudgiePopover *popover);
 static gboolean budgie_popover_manager_coords_within_window(GtkWindow *window, gint root_x,
                                                             gint root_y);
-static GtkWidget *budgie_popover_manager_get_parent_at_coords(BudgiePopoverManager *self,
-                                                              gint root_x, gint root_y);
+static BudgiePopover *budgie_popover_manager_get_popover_for_coords(BudgiePopoverManager *self,
+                                                                    gint root_x, gint root_y);
 static gboolean budgie_popover_manager_popover_mapped(BudgiePopover *popover, GdkEvent *event,
                                                       BudgiePopoverManager *self);
 static gboolean budgie_popover_manager_popover_unmapped(BudgiePopover *popover, GdkEvent *event,
@@ -144,7 +144,7 @@ static gboolean show_one_popover(gpointer v)
 
 void budgie_popover_manager_show_popover(BudgiePopoverManager *self, GtkWidget *parent_widget)
 {
-        GtkWidget *popover = NULL;
+        BudgiePopover *popover = NULL;
 
         g_assert(self != NULL);
         g_return_if_fail(parent_widget != NULL);
@@ -210,8 +210,7 @@ static void budgie_popover_manager_unlink_signals(BudgiePopoverManager *self,
 static gboolean budgie_popover_manager_enter_notify(BudgiePopoverManager *self,
                                                     GdkEventCrossing *crossing, GtkWidget *widget)
 {
-        GtkWidget *target_activatable = NULL;
-        GtkWidget *target_popover = NULL;
+        BudgiePopover *target_popover = NULL;
 
         /* We only want to hear about the grabbed events */
         if (!GTK_IS_WINDOW(widget)) {
@@ -225,16 +224,15 @@ static gboolean budgie_popover_manager_enter_notify(BudgiePopoverManager *self,
                 return GDK_EVENT_PROPAGATE;
         }
 
-        target_activatable = budgie_popover_manager_get_parent_at_coords(self,
-                                                                         (gint)crossing->x_root,
-                                                                         (gint)crossing->y_root);
-        if (!target_activatable) {
+        target_popover = budgie_popover_manager_get_popover_for_coords(self,
+                                                                       (gint)crossing->x_root,
+                                                                       (gint)crossing->y_root);
+        if (!target_popover) {
                 return GDK_EVENT_PROPAGATE;
         }
 
         /* Don't show the same popover again. :P */
-        target_popover = g_hash_table_lookup(self->popovers, target_activatable);
-        if ((BudgiePopover *)target_popover == self->active_popover) {
+        if (target_popover == self->active_popover) {
                 return GDK_EVENT_PROPAGATE;
         }
 
@@ -270,14 +268,16 @@ static gboolean budgie_popover_manager_coords_within_window(GtkWindow *window, g
 /**
  * After having received an enter notify event and determining that it isn't
  * a BudgiePopover that we entered, we iterate our registered widgets and try
- * to find the one matching the X, Y coordinates
+ * to find the one matching the X, Y coordinates.
+ *
+ * Upon finding a matching widget, we'll return the associated popover.
  */
-static GtkWidget *budgie_popover_manager_get_parent_at_coords(BudgiePopoverManager *self,
-                                                              gint root_x, gint root_y)
+static BudgiePopover *budgie_popover_manager_get_popover_for_coords(BudgiePopoverManager *self,
+                                                                    gint root_x, gint root_y)
 {
         GHashTableIter iter = { 0 };
         GtkWidget *parent_widget = NULL;
-        __budgie_unused__ BudgiePopover *assoc_popover = NULL;
+        BudgiePopover *assoc_popover = NULL;
 
         g_hash_table_iter_init(&iter, self->popovers);
         while (g_hash_table_iter_next(&iter, (void **)&parent_widget, (void **)&assoc_popover)) {
@@ -296,7 +296,7 @@ static GtkWidget *budgie_popover_manager_get_parent_at_coords(BudgiePopoverManag
 
                 if ((root_x >= rx && root_x <= rx + alloc.width) &&
                     (root_y >= ry && root_y <= ry + alloc.height)) {
-                        return parent_widget;
+                        return assoc_popover;
                 }
         }
 
