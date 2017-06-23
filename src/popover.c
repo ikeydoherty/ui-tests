@@ -364,7 +364,7 @@ static void budgie_popover_get_screen_for_widget(GtkWidget *widget, GdkRectangle
         GdkMonitor *monitor = gdk_display_get_monitor_at_window(display, assoc_window);
         gdk_monitor_get_geometry(monitor, rectangle);
 #else
-        gint monitor = gdk_screen_get_monitor_at_window(screen, window);
+        gint monitor = gdk_screen_get_monitor_at_window(screen, assoc_window);
         gdk_screen_get_monitor_geometry(screen, monitor, rectangle);
 #endif
 }
