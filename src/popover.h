@@ -44,8 +44,8 @@ struct _BudgiePopover {
  * in accordance with the screen edge, i.e. top, left, bottom, right.
  */
 typedef enum {
-        BUDGIE_POPOVER_POSITION_AUTOMATIC = 1 << 0,
-        BUDGIE_POPOVER_POSITION_TOPLEVEL_HINT = 1 << 0,
+        BUDGIE_POPOVER_POSITION_AUTOMATIC = 0,
+        BUDGIE_POPOVER_POSITION_TOPLEVEL_HINT,
 } BudgiePopoverPositionPolicy;
 
 #define BUDGIE_TYPE_POPOVER budgie_popover_get_type()

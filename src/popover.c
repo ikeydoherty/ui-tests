@@ -14,6 +14,7 @@
 #include "util.h"
 
 BUDGIE_BEGIN_PEDANTIC
+#include "budgie-enums.h"
 #include "popover.h"
 #include <gtk/gtk.h>
 BUDGIE_END_PEDANTIC
@@ -42,13 +43,14 @@ typedef struct BudgieTail {
 } BudgieTail;
 
 struct _BudgiePopoverPrivate {
-        gboolean grabbed;
         GtkWidget *add_area;
         GtkWidget *relative_to;
         BudgieTail tail;
+        BudgiePopoverPositionPolicy policy;
+        gboolean grabbed;
 };
 
-enum { PROP_RELATIVE_TO = 1, N_PROPS };
+enum { PROP_RELATIVE_TO = 1, PROP_POLICY, N_PROPS };
 
 static GParamSpec *obj_properties[N_PROPS] = {
         NULL,
@@ -118,6 +120,18 @@ static void budgie_popover_class_init(BudgiePopoverClass *klazz)
                                                                "Set the relative widget",
                                                                GTK_TYPE_WIDGET,
                                                                G_PARAM_READWRITE);
+
+        /**
+         * BudgiePopover:position-policy:
+         *
+         * Control the behaviour used to place the popover on screen.
+         */
+        obj_properties[PROP_POLICY] = g_param_spec_enum("position-policy",
+                                                        "Positioning policy",
+                                                        "Get/set the popover position policy",
+                                                        BUDGIE_TYPE_POPOVER_POSITION_POLICY,
+                                                        BUDGIE_POPOVER_POSITION_AUTOMATIC,
+                                                        G_PARAM_READWRITE);
 
         g_object_class_install_properties(obj_class, N_PROPS, obj_properties);
 }
@@ -764,6 +778,9 @@ static void budgie_popover_set_property(GObject *object, guint id, const GValue 
                         budgie_popover_compute_tail(self);
                 }
                 break;
+        case PROP_POLICY:
+                self->priv->policy = g_value_get_enum(value);
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID(object, id, spec);
                 break;
@@ -777,6 +794,9 @@ static void budgie_popover_get_property(GObject *object, guint id, GValue *value
         switch (id) {
         case PROP_RELATIVE_TO:
                 g_value_set_object(value, self->priv->relative_to);
+                break;
+        case PROP_POLICY:
+                g_value_set_enum(value, self->priv->policy);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID(object, id, spec);
