@@ -61,7 +61,7 @@ G_DEFINE_TYPE_WITH_PRIVATE(BudgiePopover, budgie_popover, GTK_TYPE_WINDOW)
 static gboolean budgie_popover_draw(GtkWidget *widget, cairo_t *cr);
 static void budgie_popover_map(GtkWidget *widget);
 static void budgie_popover_unmap(GtkWidget *widget);
-static gboolean budgie_popover_configure(GtkWidget *widget, GdkEventConfigure *event);
+static void budgie_popover_size_allocate(GtkWidget *widget, GtkAllocation *alloc);
 static void budgie_popover_grab_notify(GtkWidget *widget, gboolean was_grabbed, gpointer udata);
 static gboolean budgie_popover_grab_broken(GtkWidget *widget, GdkEvent *event, gpointer udata);
 static void budgie_popover_grab(BudgiePopover *self);
@@ -104,7 +104,7 @@ static void budgie_popover_class_init(BudgiePopoverClass *klazz)
         obj_class->get_property = budgie_popover_get_property;
 
         /* widget vtable hookup */
-        wid_class->configure_event = budgie_popover_configure;
+        wid_class->size_allocate = budgie_popover_size_allocate;
         wid_class->draw = budgie_popover_draw;
         wid_class->map = budgie_popover_map;
         wid_class->unmap = budgie_popover_unmap;
@@ -231,8 +231,10 @@ static void budgie_popover_unmap(GtkWidget *widget)
 /**
  * We did a thing, so update our position to match our size
  */
-static gboolean budgie_popover_configure(GtkWidget *widget, GdkEventConfigure *event)
+static void budgie_popover_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
 {
+        GTK_WIDGET_CLASS(budgie_popover_parent_class)->size_allocate(widget, allocation);
+
         GdkWindow *window = NULL;
         GdkRectangle coords = { 0 };
         BudgiePopover *self = NULL;
@@ -240,17 +242,13 @@ static gboolean budgie_popover_configure(GtkWidget *widget, GdkEventConfigure *e
         self = BUDGIE_POPOVER(widget);
         window = gtk_widget_get_window(widget);
         if (!window) {
-                goto done;
+                return;
         }
 
         /* Work out where we go on screen now */
         budgie_popover_compute_positition(self, &coords);
 
         gdk_window_move(window, coords.x, coords.y);
-        gtk_widget_queue_draw(widget);
-
-done:
-        return GTK_WIDGET_CLASS(budgie_popover_parent_class)->configure_event(widget, event);
 }
 
 /**
